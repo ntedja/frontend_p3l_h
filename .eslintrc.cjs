@@ -16,6 +16,7 @@ module.exports = {
     "plugin:prettier/recommended",
     "plugin:tailwindcss/recommended",
     "plugin:unicorn/recommended",
+    "plugin:storybook/recommended"
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
