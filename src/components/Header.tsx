@@ -1,6 +1,6 @@
-import { Search, ShoppingCart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import logoImage from "../assets/logo.png";
+import { Search, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import logoImage from '../assets/logo.png';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -11,7 +11,9 @@ export default function Header() {
         {/* ROW 1 */}
         <div className="flex justify-between text-sm text-[#48635B]">
           <div className="flex items-center gap-2 font-normal">
-            <a href="#" className="hover:underline">Download</a>
+            <a href="#" className="hover:underline">
+              Download
+            </a>
             <span>|</span>
             <span>Ikuti kami di</span>
             <div className="flex items-center gap-2 ml-1">
@@ -24,10 +26,18 @@ export default function Header() {
             </div>
           </div>
           <nav className="flex items-center gap-5 font-normal">
-            <a href="#" className="hover:text-[#2D4C41]">Tentang ReuseMart</a>
-            <a href="#" className="hover:text-[#2D4C41]">Mitra ReuseMart</a>
-            <a href="#" className="hover:text-[#2D4C41]">Mulai Berjualan</a>
-            <a href="#" className="hover:text-[#2D4C41]">ReuseMart Care</a>
+            <a href="#" className="hover:text-[#2D4C41]">
+              Tentang ReuseMart
+            </a>
+            <a href="#" className="hover:text-[#2D4C41]">
+              Mitra ReuseMart
+            </a>
+            <a href="#" className="hover:text-[#2D4C41]">
+              Mulai Berjualan
+            </a>
+            <a href="#" className="hover:text-[#2D4C41]">
+              ReuseMart Care
+            </a>
           </nav>
         </div>
 
@@ -48,12 +58,15 @@ export default function Header() {
           <div className="flex items-center gap-2 text-sm">
             <ShoppingCart className="w-5 h-5 text-[#48635B]" />
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate('/login')}
               className="border border-[#48635B] text-[#48635B] px-4 py-1.5 rounded hover:bg-[#F7F3EC]"
             >
               Masuk
             </button>
-            <button className="bg-[#48635B] text-white px-4 py-1.5 rounded hover:bg-[#2D4C41]">
+            <button
+              onClick={() => navigate('/register')}
+              className="bg-[#48635B] text-white px-4 py-1.5 rounded hover:bg-[#2D4C41]"
+            >
               Daftar
             </button>
           </div>
