@@ -15,7 +15,7 @@ export default function LoginPage() {
             <img src="/logo.png" alt="Logo" className="w-8 h-8" />
             ReuseMart
           </div>
-          <h1 className="text-lg font-semibold text-black">Log in</h1>
+          <h1 className="text-lg font-semibold text-black">Registrasi Pembeli</h1>
         </div>
       </div>
 
@@ -35,7 +35,7 @@ export default function LoginPage() {
 
           {/* Kanan - Form Login */}
           <div className="bg-white rounded shadow-md p-6 w-full max-w-xs">
-            <h2 className="text-xl font-bold text-center mb-4">Login</h2>
+            <h2 className="text-xl font-bold text-center mb-4">Register Pembeli</h2>
             <form
               className="space-y-4"
               onSubmit={(e) => {
@@ -43,6 +43,11 @@ export default function LoginPage() {
                 navigate('/');
               }}
             >
+              <input
+                type="namalengkap"
+                placeholder="Nama Lengkap"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none"
+              />
               <input
                 type="email"
                 placeholder="Email"
@@ -53,17 +58,32 @@ export default function LoginPage() {
                 placeholder="Password"
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none"
               />
+              <input
+                type="konfirmpassword"
+                placeholder="Konfirmasi Password"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none"
+              />
+              <input
+                type="noHP"
+                placeholder="No. HP"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none"
+              />
+              <input
+                type="alamat"
+                placeholder="Alamat"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none"
+              />
               <button
                 type="submit"
                 className="w-full bg-[#48635B] text-white py-2 rounded hover:bg-[#2D4C41] text-sm"
               >
-                Log In
+                Daftar Sekarang
               </button>
             </form>
             <p className="text-xs text-center mt-4">
-              Baru di Reuse Mart?{' '}
-              <a href="/register" className="text-blue-600">
-                Daftar
+              Punya akun pembeli?{' '}
+              <a href="/login" className="text-blue-600">
+                Log In
               </a>
             </p>
           </div>

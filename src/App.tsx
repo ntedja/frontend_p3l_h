@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";  
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ScrollToTop from "./components/ScrollToTop";
 import TentangReuseMartPage from "./pages/TentangReuseMartPage";
@@ -15,6 +16,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/produk/:slug" element={<ProductDetailPage />} />
         <Route path="/tentang-reusemart" element={<TentangReuseMartPage />} />
         <Route path="/mitra-reusemart" element={<MitraReuseMartPage />} />
@@ -24,4 +26,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
