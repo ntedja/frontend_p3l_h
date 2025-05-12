@@ -7,7 +7,7 @@ export default function Header() {
 
   return (
     <header className="w-full bg-[#FFF7E2] text-[#2D4C41] border-b border-gray-300 pt-4">
-      <div className="max-w-[1440px] mx-auto px-12 py-3 flex flex-col gap-3">
+      <div className="max-w-full mx-auto px-12 py-3 flex flex-col gap-3">
         {/* ROW 1 */}
         <div className="flex justify-between text-sm text-[#48635B]">
           <div className="flex items-center gap-2 font-normal">
@@ -44,7 +44,7 @@ export default function Header() {
         {/* ROW 2 */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2 text-2xl font-bold text-[#48635B] whitespace-nowrap">
-            <img src="/logo.png" alt="ReuseMart Logo" className="w-8 h-8" />
+            <img src="{logoImage}" alt="ReuseMart Logo" className="w-8 h-8" />
             ReuseMart
           </div>
           <div className="flex-1 relative">

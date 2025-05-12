@@ -1,12 +1,14 @@
 export default function Footer() {
   return (
     <footer className="bg-[#D2CDB7] mt-10 pt-6">
-      <div className="max-w-[1300px] mx-auto px-6 flex justify-center gap-x-20 items-start flex-wrap text-[#2D4C41] text-sm pb-6">
+      <div className="max-w-full mx-auto px-6 flex justify-center gap-x-20 items-start flex-wrap text-[#2D4C41] text-sm pb-6">
         {/* Kiri - Logo */}
         <div className="flex items-start gap-3">
           <img src="/logo.png" alt="logo" className="w-14 h-14" />
           <h3 className="text-2xl font-bold leading-tight mt-1.5">
-            Reuse<br />Mart
+            Reuse
+            <br />
+            Mart
           </h3>
         </div>
 
