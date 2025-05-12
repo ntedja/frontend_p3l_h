@@ -1,6 +1,5 @@
 import { Search, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logoImage from "../assets/logo.png";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -24,10 +23,10 @@ export default function Header() {
             </div>
           </div>
           <nav className="flex items-center gap-5 font-normal">
-            <a href="#" className="hover:text-[#2D4C41]">Tentang ReuseMart</a>
-            <a href="#" className="hover:text-[#2D4C41]">Mitra ReuseMart</a>
-            <a href="#" className="hover:text-[#2D4C41]">Mulai Berjualan</a>
-            <a href="#" className="hover:text-[#2D4C41]">ReuseMart Care</a>
+            <a href="/tentang-reusemart" className="hover:text-[#2D4C41]">Tentang ReuseMart</a>
+            <a href="/mitra-reusemart" className="hover:text-[#2D4C41]">Mitra ReuseMart</a>
+            <a href="/mulai-jualan" className="hover:text-[#2D4C41]">Mulai Jualan</a>
+            <a href="/reusemart-care" className="hover:text-[#2D4C41]">ReuseMart Care</a>
           </nav>
         </div>
 
