@@ -1,8 +1,7 @@
-import { Search, ShoppingCart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Search, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoImage from '../assets/logo.png';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -13,9 +12,7 @@ export default function Header() {
         {/* ROW 1 */}
         <div className="flex justify-between text-sm text-[#48635B]">
           <div className="flex items-center gap-2 font-normal">
-            <a href="#" className="hover:underline">
-              Download
-            </a>
+            <a href="#" className="hover:underline">Download</a>
             <span>|</span>
             <span>Ikuti kami di</span>
             <div className="flex items-center gap-2 ml-1">
@@ -32,26 +29,15 @@ export default function Header() {
             <a href="/mitra-reusemart" className="hover:text-[#2D4C41]">Mitra ReuseMart</a>
             <a href="/mulai-jualan" className="hover:text-[#2D4C41]">Mulai Jualan</a>
             <a href="/reusemart-care" className="hover:text-[#2D4C41]">ReuseMart Care</a>
-            <a href="#" className="hover:text-[#2D4C41]">
-              Tentang ReuseMart
-            </a>
-            <a href="#" className="hover:text-[#2D4C41]">
-              Mitra ReuseMart
-            </a>
-            <a href="#" className="hover:text-[#2D4C41]">
-              Mulai Berjualan
-            </a>
-            <a href="#" className="hover:text-[#2D4C41]">
-              ReuseMart Care
-            </a>
           </nav>
         </div>
 
         {/* ROW 2 */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2 text-2xl font-bold text-[#48635B] whitespace-nowrap">
-            <img src="/logo.png" alt="ReuseMart Logo" className="w-8 h-8" />
-            ReuseMart
+            <Link to="/" className="flex items-center">
+              <img src={logoImage} alt="ReuseMart Logo" className="w-17 h-10 cursor-pointer" />
+            </Link>
           </div>
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#48635B] w-4 h-4" />
@@ -61,17 +47,17 @@ export default function Header() {
               className="w-full border border-[#48635B] rounded-xl pl-10 pr-4 py-2 text-sm bg-transparent text-[#48635B] placeholder:text-[#48635B] focus:outline-none focus:ring-1 focus:ring-[#48635B]"
             />
           </div>
-          <div className="flex items-center gap-2 text-sm">
+           <div className="flex items-center gap-2 text-sm whitespace-nowrap">
             <ShoppingCart className="w-5 h-5 text-[#48635B]" />
             <button
               onClick={() => navigate('/login')}
-              className="border border-[#48635B] text-[#48635B] px-4 py-1.5 rounded hover:bg-[#F7F3EC]"
+              className="bg-[#48635B] text-white px-4 py-1.5 rounded"
             >
               Masuk
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="bg-[#48635B] text-white px-4 py-1.5 rounded hover:bg-[#2D4C41]"
+              className="bg-[#48635B] text-white px-4 py-1.5 rounded"
             >
               Daftar
             </button>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -69,7 +69,7 @@ const ReuseMartCarePage = () => {
               <div className="mb-3">{step.icon}</div>
               <h3 className="font-semibold text-base text-[#3E5B50] mb-2">{step.title}</h3>
               <p className="text-sm text-[#2F3F3A] leading-relaxed text-left">{step.desc}</p>
-            </motion.div>
+            </motion.div>   
           ))}
         </div>
       </section>

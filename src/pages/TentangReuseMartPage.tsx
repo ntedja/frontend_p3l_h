@@ -9,11 +9,11 @@ export default function TentangReuseMartPage() {
   }, []);
 
   return (
-    <main className="bg-[#FFF7E2] text-[#2F3F3A] min-h-screen overflow-x-hidden">
+    <main className="bg-[#FFF7E2] text-[#2F3F3A] min-h-screen w-full overflow-x-hidden">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-[#FFF7E2] text-center py-24 px-6 sm:px-10 lg:px-20">
+      <section className="relative bg-[#FFF7E2] text-center py-24 px-6 sm:px-10 lg:px-20 w-full">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -35,19 +35,19 @@ export default function TentangReuseMartPage() {
       </section>
 
       {/* About Section */}
-      <section className="bg-[#F3EFDA] py-20 px-6 sm:px-10 lg:px-20 border-t border-[#FFF7E2]">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <section className="bg-[#F3EFDA] py-20 border-t border-[#FFF7E2] w-full">
+        <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div className="bg-white rounded-xl shadow-md p-4 w-full max-w-md mx-auto">
-                <img
-                    src="src/assets/ecoFriendly.png"
-                    alt="Eco Friendly Illustration"
-                    className="w-full h-auto rounded-lg"
-                />
+              <img
+                src="src/assets/ecoFriendly.png"
+                alt="Eco Friendly Illustration"
+                className="w-full h-auto rounded-lg"
+              />
             </div>
           </motion.div>
 
@@ -75,54 +75,56 @@ export default function TentangReuseMartPage() {
       </section>
 
       {/* Unique Features Section */}
-      <section className="py-20 px-6 sm:px-10 lg:px-20 bg-[#FFF7E2]">
-        <motion.h2
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="text-2xl sm:text-3xl font-bold text-center mb-10 text-[#2F3F3A]"
-        >
-          Mengapa ReuseMart Istimewa?
-        </motion.h2>
+      <section className="py-20 w-full bg-[#FFF7E2]">
+        <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-20">
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            className="text-2xl sm:text-3xl font-bold text-center mb-10 text-[#2F3F3A]"
+          >
+            Mengapa ReuseMart Istimewa?
+          </motion.h2>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Layanan Konsinyasi All-in-One",
-              desc: "Dari QC, foto produk, gudang, hingga pengiriman ditangani oleh tim profesional kami."
-            },
-            {
-              title: "Komitmen Ramah Lingkungan",
-              desc: "Mengurangi limbah dan mendukung daur ulang melalui donasi barang yang tidak laku."
-            },
-            {
-              title: "Platform Digital Transparan",
-              desc: "Transaksi dan status barang bisa dilihat secara real-time oleh penitip dan pembeli."
-            },
-            {
-              title: "Mitra Sosial untuk Donasi",
-              desc: "Barang yang tak terjual dapat disumbangkan ke organisasi sosial yang terverifikasi."
-            },
-            {
-              title: "Dukungan Layanan Pelanggan",
-              desc: "Tim kami siap membantu penitip dan pembeli melalui sistem terintegrasi."
-            },
-            {
-              title: "Sistem Notifikasi Cerdas",
-              desc: "Pengingat otomatis saat masa penitipan hampir habis atau saat barang harus diambil."
-            }
-          ].map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: idx * 0.15 }}
-              className="bg-[#F3EFDA] p-6 rounded-xl shadow-md text-center"
-            >
-              <h3 className="font-semibold text-base sm:text-lg text-[#3E5B50] mb-2">{item.title}</h3>
-              <p className="text-sm text-[#2F3F3A]">{item.desc}</p>
-            </motion.div>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Layanan Konsinyasi All-in-One",
+                desc: "Dari QC, foto produk, gudang, hingga pengiriman ditangani oleh tim profesional kami."
+              },
+              {
+                title: "Komitmen Ramah Lingkungan",
+                desc: "Mengurangi limbah dan mendukung daur ulang melalui donasi barang yang tidak laku."
+              },
+              {
+                title: "Platform Digital Transparan",
+                desc: "Transaksi dan status barang bisa dilihat secara real-time oleh penitip dan pembeli."
+              },
+              {
+                title: "Mitra Sosial untuk Donasi",
+                desc: "Barang yang tak terjual dapat disumbangkan ke organisasi sosial yang terverifikasi."
+              },
+              {
+                title: "Dukungan Layanan Pelanggan",
+                desc: "Tim kami siap membantu penitip dan pembeli melalui sistem terintegrasi."
+              },
+              {
+                title: "Sistem Notifikasi Cerdas",
+                desc: "Pengingat otomatis saat masa penitipan hampir habis atau saat barang harus diambil."
+              }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.15 }}
+                className="bg-[#F3EFDA] p-6 rounded-xl shadow-md text-center"
+              >
+                <h3 className="font-semibold text-base sm:text-lg text-[#3E5B50] mb-2">{item.title}</h3>
+                <p className="text-sm text-[#2F3F3A]">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
