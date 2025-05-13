@@ -1,14 +1,17 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import ScrollToTop from "./components/ScrollToTop";
-import TentangReuseMartPage from "./pages/TentangReuseMartPage";
-import MitraReuseMartPage from "./pages/MitraReuseMartPage";
-import MulaiJualanPage from "./pages/MulaiJualanPage";
-import ReuseMartCarePage from "./pages/ReuseMartCarePage";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import LoginPageOrganisasi from './pages/LoginPageOrganisasi';
+import RegisterPageOrganisasi from './pages/RegisterPageOrganisasi';
+import ProductDetailPage from './pages/ProductDetailPage';
+import ScrollToTop from './components/ScrollToTop';
+import TentangReuseMartPage from './pages/TentangReuseMartPage';
+import MitraReuseMartPage from './pages/MitraReuseMartPage';
+import MulaiJualanPage from './pages/MulaiJualanPage';
+import ReuseMartCarePage from './pages/ReuseMartCarePage';
 import ProfilePage from './pages/ProfilePage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 export default function App() {
   return (
@@ -23,9 +26,10 @@ export default function App() {
         <Route path="/mitra-reusemart" element={<MitraReuseMartPage />} />
         <Route path="/mulai-jualan" element={<MulaiJualanPage />} />
         <Route path="/reusemart-care" element={<ReuseMartCarePage />} />
-        <Route path="/loginorganisasi" element={<HomePage />} />
-        <Route path="/registerorganisasi" element={<LoginPage />} />
+        <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />
+        <Route path="/registerorganisasi" element={<RegisterPageOrganisasi />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Routes>
     </BrowserRouter>
   );

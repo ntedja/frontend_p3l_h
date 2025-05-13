@@ -65,8 +65,8 @@ export default function RegisterPage() {
             className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer"
           >
             <img src={logoImage} alt="Logo" className="w-17 h-10" />
-            Registrasi
           </div>
+          <h1 className="text-2xl font-semibold text-black">Register</h1>
         </div>
       </div>
 
@@ -80,7 +80,8 @@ export default function RegisterPage() {
               Jual Beli Barang Bekas di ReuseMart
             </h1>
             <p className="text-base mt-4 text-[#405C53] max-w-md mx-auto md:mx-0">
-              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang bekas terpercaya.
+              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang
+              bekas terpercaya.
             </p>
           </div>
 

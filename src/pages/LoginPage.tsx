@@ -24,8 +24,7 @@ export default function LoginPage() {
       localStorage.setItem('token', res.data.token);
       navigate('/');
     } catch (err: any) {
-      const msg =
-        err.response?.data?.message || 'Login gagal. Mohon cek koneksi atau format data.';
+      const msg = err.response?.data?.message || 'Login gagal. Mohon cek koneksi atau format data.';
       setErrorMsg(msg);
     }
   };
@@ -40,9 +39,8 @@ export default function LoginPage() {
             className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer"
           >
             <img src={logoImage} alt="Logo" className="w-17 h-10" />
-            Log in
           </div>
-          <h1 className="text-lg font-semibold text-black">Log in</h1>
+          <h1 className="text-2xl font-semibold text-black">Log in</h1>
         </div>
       </div>
 
@@ -56,7 +54,8 @@ export default function LoginPage() {
               Jual Beli Barang Bekas di ReuseMart
             </h1>
             <p className="text-base mt-4 text-[#405C53] max-w-md mx-auto md:mx-0">
-              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang bekas terpercaya.
+              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang
+              bekas terpercaya.
             </p>
           </div>
 
@@ -72,22 +71,31 @@ export default function LoginPage() {
                 required
                 className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
               />
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3E5B50]"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+              <div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3E5B50]"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Forgot Password Link */}
+                <div className="flex justify-end mt-2">
+                  <a href="/forgot-password" className="text-sm text-[#3E5B50] hover:underline">
+                    Lupa password?
+                  </a>
+                </div>
               </div>
 
               {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}

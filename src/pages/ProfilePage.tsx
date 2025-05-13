@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-// import defaultAvatar from '../assets/default-avatar.png';
 
 export default function ProfilePage() {
   const [formData, setFormData] = useState({
@@ -31,32 +30,37 @@ export default function ProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Data disimpan:', formData);
-    // TODO: Kirim ke backend
   };
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32]">
       <Header />
 
-      <main className="max-w-[1300px] mx-auto px-6 py-12">
+      <main className="max-w-[1300px] mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-2xl font-bold mb-6">Profil Saya</h1>
 
         <form onSubmit={handleSubmit}>
-          <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-8">
-            {/* Sidebar menu */}
-            <aside className="w-full md:w-1/4 border-r md:pr-4">
+          <div className="bg-white rounded-xl shadow p-6 md:flex md:flex-row gap-8">
+            {/* Sidebar */}
+            <aside className="w-full md:w-1/4 mb-6 md:mb-0">
               <div className="flex flex-col items-center mb-6">
                 <img
-                  //   src={defaultAvatar}
+                  // src={defaultAvatar}
                   alt="Avatar"
                   className="w-20 h-20 rounded-full object-cover mb-2"
                 />
                 <h3 className="text-lg font-semibold">{formData.name}</h3>
-                <button type="button" className="text-blue-600 text-sm hover:underline">
-                  Ubah Profil
-                </button>
               </div>
-              <nav className="space-y-3 text-sm text-[#48635B] font-medium">
+
+              {/* Saldo dan Poin */}
+              <div className="bg-[#F9F9F9] p-4 rounded-lg mb-6 w-full text-center">
+                <p className="text-sm text-gray-600">Saldo</p>
+                <p className="text-lg font-semibold text-[#1E2B32]">Rp120.000</p>
+                <p className="text-sm text-gray-600 mt-4">Poin</p>
+                <p className="text-lg font-semibold text-[#1E2B32]">1.250</p>
+              </div>
+
+              <nav className="space-y-3 text-sm text-[#48635B] font-medium text-center md:text-left">
                 <div className="text-[#1E2B32] font-semibold">Profil</div>
                 <div>Bank & Kartu</div>
                 <div>Alamat</div>
@@ -66,11 +70,10 @@ export default function ProfilePage() {
                 <div>Pesanan Saya</div>
                 <div>Notifikasi</div>
                 <div>Voucher Saya</div>
-                <div>Koin Saya</div>
               </nav>
             </aside>
 
-            {/* Form profile */}
+            {/* Form */}
             <section className="w-full md:w-3/4 space-y-4">
               <div>
                 <label className="block font-medium mb-1">Nama</label>
@@ -118,7 +121,7 @@ export default function ProfilePage() {
 
               <div>
                 <label className="block font-medium mb-1">Jenis Kelamin</label>
-                <div className="flex items-center gap-4 mt-2">
+                <div className="flex flex-wrap items-center gap-4 mt-2">
                   {['Laki-laki', 'Perempuan', 'Lainnya'].map((option) => (
                     <label key={option} className="inline-flex items-center">
                       <input
