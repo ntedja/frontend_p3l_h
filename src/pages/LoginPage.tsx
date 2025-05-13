@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 
@@ -15,32 +16,17 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      const res = await fetch('http://localhost:8000/api/pegawai/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          EMAIL_PEGAWAI: email,
-          PASSWORD_PEGAWAI: password,
-        }),
-      });      
+      const res = await axios.post('http://localhost:8000/api/pegawai/login', {
+        EMAIL_PEGAWAI: email,
+        PASSWORD_PEGAWAI: password,
+      });
 
-      const text = await res.text();
-
-      if (!res.ok) {
-        try {
-          const errData = JSON.parse(text);
-          setErrorMsg(errData.message || 'Email atau password salah');
-        } catch {
-          setErrorMsg('Login gagal. Mohon cek koneksi atau format data.');
-        }
-        return;
-      }
-
-      const data = JSON.parse(text);
-      localStorage.setItem('token', data.token); 
+      localStorage.setItem('token', res.data.token);
       navigate('/');
-    } catch (err) {
-      setErrorMsg('Terjadi kesalahan saat menghubungi server.');
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || 'Login gagal. Mohon cek koneksi atau format data.';
+      setErrorMsg(msg);
     }
   };
 
