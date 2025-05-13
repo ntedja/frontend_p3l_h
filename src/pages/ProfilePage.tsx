@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 
 export default function ProfilePage() {
   const [formData, setFormData] = useState({
-    username: 'nicholas_tedja',
     name: 'Nicholas Tedja',
     email: 'te***********@gmail.com',
     phone: '*********35',
@@ -39,7 +38,7 @@ export default function ProfilePage() {
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32]">
       <Header />
 
-      <main className="max-w-[1500px] mx-auto px-6 py-12">
+      <main className="max-w-[1300px] mx-auto px-6 py-12">
         <h1 className="text-2xl font-bold mb-6">Profil Saya</h1>
 
         <form onSubmit={handleSubmit}>
@@ -52,7 +51,7 @@ export default function ProfilePage() {
                   alt="Avatar"
                   className="w-20 h-20 rounded-full object-cover mb-2"
                 />
-                <h3 className="text-lg font-semibold">{formData.username}</h3>
+                <h3 className="text-lg font-semibold">{formData.name}</h3>
                 <button type="button" className="text-blue-600 text-sm hover:underline">
                   Ubah Profil
                 </button>
@@ -73,17 +72,6 @@ export default function ProfilePage() {
 
             {/* Form profile */}
             <section className="w-full md:w-3/4 space-y-4">
-              <div>
-                <label className="block font-medium mb-1">Username</label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded-md bg-white border-[#CCC]"
-                />
-              </div>
-
               <div>
                 <label className="block font-medium mb-1">Nama</label>
                 <input

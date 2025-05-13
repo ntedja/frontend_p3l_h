@@ -10,7 +10,6 @@ html, body, #root {
   overflow-x: hidden; /* Hindari scroll horizontal */
 }
 
-
 /* Reset dan base styling */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
