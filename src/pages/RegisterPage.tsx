@@ -1,35 +1,58 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !password ||
-      !confirmPassword ||
-      password.length < 8 ||
-      password !== confirmPassword
-    ) {
-      if (!password || !confirmPassword) {
-        setErrorMessage('Semua field wajib diisi');
-      } else if (password.length < 8) {
-        setErrorMessage('Password minimal 8 karakter');
-      } else if (password !== confirmPassword) {
-        setErrorMessage('Konfirmasi password tidak cocok');
-      }
+
+    // Validasi sederhana
+    if (!password || !confirmPassword || !name || !email || !phone || !address) {
+      setErrorMessage('Semua field wajib diisi');
       return;
     }
-    setErrorMessage('');
-    navigate('/');
+    if (password.length < 8) {
+      setErrorMessage('Password minimal 8 karakter');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Konfirmasi password tidak cocok');
+      return;
+    }
+
+    try {
+      const res = await axios.post('http://localhost:8000/api/registrasi', {
+        nama: name,
+        email,
+        no_hp: phone,
+        alamat: address,
+        password,
+      });
+
+      // Jika berhasil
+      if (res.status === 201 || res.status === 200) {
+        setErrorMessage('');
+        navigate('/login'); // Redirect ke halaman login
+      }
+    } catch (err: any) {
+      // Tangani error dari backend
+      const msg = err.response?.data?.message || 'Registrasi gagal. Coba lagi.';
+      setErrorMessage(msg);
+    }
   };
 
   return (
@@ -50,7 +73,7 @@ export default function RegisterPage() {
       {/* KONTEN REGISTER */}
       <div className="flex-1 bg-[#FFF7E2] flex items-center justify-center px-4">
         <div className="max-w-6xl w-full flex flex-col md:flex-row justify-between items-center gap-14 py-16">
-          {/* Kiri - Logo & Deskripsi */}
+          {/* Kiri */}
           <div className="text-center md:text-left flex-1">
             <img src={logoImage} alt="ReuseMart Logo" className="w-80 h-70 mx-auto md:mx-0" />
             <h1 className="text-[#48635B] text-xl md:text-2xl font-bold mt-6">
@@ -61,82 +84,82 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Kanan - Form Register */}
+          {/* Kanan */}
           <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md border border-[#E1DBC0]">
             <h2 className="text-2xl font-bold text-center mb-6 text-[#3E5B50]">Register Pembeli</h2>
             <form className="space-y-5" onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="Nama Lengkap"
-                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
-
-              {/* Password */}
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pr-12 focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                  className="w-full pr-12 border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3E5B50]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-
-              {/* Confirm Password */}
               <div className="relative">
                 <input
                   type={showConfirm ? 'text' : 'password'}
                   placeholder="Konfirmasi Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pr-12 focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                  className="w-full pr-12 border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3E5B50]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-
               <input
                 type="tel"
                 placeholder="No. HP"
-                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
               <input
                 type="text"
                 placeholder="Alamat"
-                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
 
-              {/* Error Message */}
-              {errorMessage && (
-                <p className="text-sm text-red-600 -mt-2">{errorMessage}</p>
-              )}
+              {errorMessage && <p className="text-sm text-red-600 -mt-2">{errorMessage}</p>}
 
               <button
                 type="submit"
-                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-3 rounded-full shadow-md text-sm transition-all duration-200 hover:shadow-lg active:scale-[.98]"
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-3 rounded-full shadow-md text-sm transition-all duration-200"
               >
                 Daftar Sekarang
               </button>
