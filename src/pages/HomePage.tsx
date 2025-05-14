@@ -3,15 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import macbookImage from "../assets/images.png";
 import homePageImage from "../assets/homePage.jpeg";
-
-type Product = {
-  name: string;
-  price: string;
-  category: string;
-  image: string;
-};
+import { getAllAvailableProducts } from "../api/apiBarang";
+import type { Product } from "../api/apiBarang";
 
 type CategoryKey =
   | "elektronik"
@@ -25,67 +19,17 @@ type CategoryKey =
   | "kantor-industri"
   | "kosmetik";
 
-const allProducts: Record<CategoryKey, Product[]> = {
-  elektronik: Array(7).fill({
-    name: "MacBook Air 11”",
-    price: "Rp12.000.000",
-    category: "Elektronik & Gadget",
-    image: macbookImage,
-  }),
-  pakaian: Array(7).fill({
-    name: "Gucci Backpack 2019",
-    price: "Rp69.000.000",
-    category: "Pakaian & Aksesoris",
-    image: macbookImage,
-  }),
-  perabotan: Array(7).fill({
-    name: "Lemari Jati Minimalis",
-    price: "Rp2.500.000",
-    category: "Perabotan Rumah Tangga",
-    image: macbookImage,
-  }),
-  buku: Array(7).fill({
-    name: "Paket Buku Tulis",
-    price: "Rp90.000",
-    category: "Buku & Alat Tulis",
-    image: macbookImage,
-  }),
-  hobi: Array(7).fill({
-    name: "PS4 Bekas",
-    price: "Rp2.000.000",
-    category: "Hobi, Mainan, & Koleksi",
-    image: macbookImage,
-  }),
-  "bayi-anak": Array(7).fill({
-    name: "Baju Anak H&M",
-    price: "Rp200.000",
-    category: "Perlengkapan Bayi & Anak",
-    image: macbookImage,
-  }),
-  otomotif: Array(7).fill({
-    name: "Aksesoris Mobil Honda",
-    price: "Rp350.000",
-    category: "Otomotif & Aksesoris",
-    image: macbookImage,
-  }),
-  "taman-outdoor": Array(7).fill({
-    name: "Set Kursi Taman",
-    price: "Rp1.200.000",
-    category: "Perlengkapan Taman & Outdoor",
-    image: macbookImage,
-  }),
-  "kantor-industri": Array(7).fill({
-    name: "Kursi Kantor Ergonomis",
-    price: "Rp700.000",
-    category: "Peralatan Kantor & Industri",
-    image: macbookImage,
-  }),
-  kosmetik: Array(7).fill({
-    name: "Skincare Naturals",
-    price: "Rp250.000",
-    category: "Kosmetik & Perawatan Diri",
-    image: macbookImage,
-  }),
+const categoryMap: Record<string, CategoryKey> = {
+  "Elektronik & Gadget": "elektronik",
+  "Pakaian & Aksesoris": "pakaian",
+  "Perabotan Rumah Tangga": "perabotan",
+  "Buku & Alat Tulis": "buku",
+  "Hobi, Mainan, & Koleksi": "hobi",
+  "Perlengkapan Bayi & Anak": "bayi-anak",
+  "Otomotif & Aksesoris": "otomotif",
+  "Perlengkapan Taman & Outdoor": "taman-outdoor",
+  "Peralatan Kantor & Industri": "kantor-industri",
+  "Kosmetik & Perawatan Diri": "kosmetik",
 };
 
 const categories = [
@@ -104,14 +48,49 @@ const categories = [
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<"recent" | CategoryKey>("recent");
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [allFetchedProducts, setAllFetchedProducts] = useState<Record<CategoryKey, Product[]>>({
+    elektronik: [],
+    pakaian: [],
+    perabotan: [],
+    buku: [],
+    hobi: [],
+    "bayi-anak": [],
+    otomotif: [],
+    "taman-outdoor": [],
+    "kantor-industri": [],
+    kosmetik: [],
+  });
 
   useEffect(() => {
-    const combined = Object.values(allProducts).flat();
-    const shuffled = [...combined].sort(() => 0.5 - Math.random());
-    setRecentProducts(shuffled.slice(0, 7));
+    getAllAvailableProducts().then((res) => {
+      const dataByCategory: Record<CategoryKey, Product[]> = {
+        elektronik: [],
+        pakaian: [],
+        perabotan: [],
+        buku: [],
+        hobi: [],
+        "bayi-anak": [],
+        otomotif: [],
+        "taman-outdoor": [],
+        "kantor-industri": [],
+        kosmetik: [],
+      };
+
+      res.forEach((item) => {
+        const slug = categoryMap[item.category];
+        if (slug) {
+          dataByCategory[slug].push(item);
+        }
+      });
+
+      setAllFetchedProducts(dataByCategory);
+      const allItems = Object.values(dataByCategory).flat();
+      const shuffled = [...allItems].sort(() => 0.5 - Math.random());
+      setRecentProducts(shuffled.slice(0, 7));
+    });
   }, []);
 
-  const productList = selectedCategory === "recent" ? recentProducts : allProducts[selectedCategory];
+  const productList = selectedCategory === "recent" ? recentProducts : allFetchedProducts[selectedCategory];
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
