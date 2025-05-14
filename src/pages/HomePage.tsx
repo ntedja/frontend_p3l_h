@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import macbookImage from "../assets/images.png";
 import homePageImage from "../assets/homePage.jpeg";
+import macbookImage from "../assets/images.png"; // default image
 
 type Product = {
   name: string;
@@ -25,69 +26,6 @@ type CategoryKey =
   | "kantor-industri"
   | "kosmetik";
 
-const allProducts: Record<CategoryKey, Product[]> = {
-  elektronik: Array(7).fill({
-    name: "MacBook Air 11”",
-    price: "Rp12.000.000",
-    category: "Elektronik & Gadget",
-    image: macbookImage,
-  }),
-  pakaian: Array(7).fill({
-    name: "Gucci Backpack 2019",
-    price: "Rp69.000.000",
-    category: "Pakaian & Aksesoris",
-    image: macbookImage,
-  }),
-  perabotan: Array(7).fill({
-    name: "Lemari Jati Minimalis",
-    price: "Rp2.500.000",
-    category: "Perabotan Rumah Tangga",
-    image: macbookImage,
-  }),
-  buku: Array(7).fill({
-    name: "Paket Buku Tulis",
-    price: "Rp90.000",
-    category: "Buku & Alat Tulis",
-    image: macbookImage,
-  }),
-  hobi: Array(7).fill({
-    name: "PS4 Bekas",
-    price: "Rp2.000.000",
-    category: "Hobi, Mainan, & Koleksi",
-    image: macbookImage,
-  }),
-  "bayi-anak": Array(7).fill({
-    name: "Baju Anak H&M",
-    price: "Rp200.000",
-    category: "Perlengkapan Bayi & Anak",
-    image: macbookImage,
-  }),
-  otomotif: Array(7).fill({
-    name: "Aksesoris Mobil Honda",
-    price: "Rp350.000",
-    category: "Otomotif & Aksesoris",
-    image: macbookImage,
-  }),
-  "taman-outdoor": Array(7).fill({
-    name: "Set Kursi Taman",
-    price: "Rp1.200.000",
-    category: "Perlengkapan Taman & Outdoor",
-    image: macbookImage,
-  }),
-  "kantor-industri": Array(7).fill({
-    name: "Kursi Kantor Ergonomis",
-    price: "Rp700.000",
-    category: "Peralatan Kantor & Industri",
-    image: macbookImage,
-  }),
-  kosmetik: Array(7).fill({
-    name: "Skincare Naturals",
-    price: "Rp250.000",
-    category: "Kosmetik & Perawatan Diri",
-    image: macbookImage,
-  }),
-};
-
 const categories = [
   { label: "Elektronik & Gadget", icon: "bi-phone", slug: "elektronik" },
   { label: "Pakaian & Aksesoris", icon: "bi-bag", slug: "pakaian" },
@@ -101,17 +39,37 @@ const categories = [
   { label: "Kosmetik & Perawatan Diri", icon: "bi-heart", slug: "kosmetik" },
 ];
 
+const API_BASE_URL = "http://localhost:8000/api"; // Ganti jika beda
+
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<"recent" | CategoryKey>("recent");
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const combined = Object.values(allProducts).flat();
-    const shuffled = [...combined].sort(() => 0.5 - Math.random());
-    setRecentProducts(shuffled.slice(0, 7));
+    axios.get(`${API_BASE_URL}/produk`)
+      .then((res) => {
+        const products = res.data.map((item: any) => ({
+          name: item.name,
+          price: item.price,
+          category: item.category,
+          image: item.image || macbookImage,
+        }));
+        setFetchedProducts(products);
+        const shuffled = [...products].sort(() => 0.5 - Math.random());
+        setRecentProducts(shuffled.slice(0, 7));
+      })
+      .catch((err) => {
+        console.error("Gagal fetch produk:", err);
+      });
   }, []);
 
-  const productList = selectedCategory === "recent" ? recentProducts : allProducts[selectedCategory];
+  const productList = selectedCategory === "recent"
+    ? recentProducts
+    : fetchedProducts.filter(p => {
+        const cat = categories.find(c => c.slug === selectedCategory);
+        return cat && p.category === cat.label;
+      });
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
