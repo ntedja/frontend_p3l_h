@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { signIn } from '../api/apiAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
+import axios from 'axios';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,16 +17,21 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://localhost:8000/api/pegawai/login', {
-        EMAIL_PEGAWAI: email,
-        PASSWORD_PEGAWAI: password,
+      const res = await axios.post('http://localhost:8000/api/login', {
+        email: email,
+        password: password,
       });
 
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('role', res.data.role);
+      localStorage.setItem('email', email);
+      if (res.data.role === 'pegawai') {
+        localStorage.setItem('jabatan', res.data.jabatan);
+      }
+
       navigate('/');
     } catch (err: any) {
-      const msg =
-        err.response?.data?.message || 'Login gagal. Mohon cek koneksi atau format data.';
+      const msg = err.response?.data?.message || 'Login gagal. Mohon cek koneksi atau format data.';
       setErrorMsg(msg);
     }
   };
@@ -56,7 +62,8 @@ export default function LoginPage() {
               Jual Beli Barang Bekas di ReuseMart
             </h1>
             <p className="text-base mt-4 text-[#405C53] max-w-md mx-auto md:mx-0">
-              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang bekas terpercaya.
+              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang
+              bekas terpercaya.
             </p>
           </div>
 
