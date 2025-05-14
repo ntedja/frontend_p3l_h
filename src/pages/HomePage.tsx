@@ -1,11 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import homePageImage from "../assets/homePage.jpeg";
-import { getAllAvailableProducts } from "../api/apiBarang";
-import type { Product } from "../api/apiBarang";
+import macbookImage from "../assets/images.png"; // default image
+
+type Product = {
+  name: string;
+  price: string;
+  category: string;
+  image: string;
+};
 
 type CategoryKey =
   | "elektronik"
@@ -18,19 +25,6 @@ type CategoryKey =
   | "taman-outdoor"
   | "kantor-industri"
   | "kosmetik";
-
-const categoryMap: Record<string, CategoryKey> = {
-  "Elektronik & Gadget": "elektronik",
-  "Pakaian & Aksesoris": "pakaian",
-  "Perabotan Rumah Tangga": "perabotan",
-  "Buku & Alat Tulis": "buku",
-  "Hobi, Mainan, & Koleksi": "hobi",
-  "Perlengkapan Bayi & Anak": "bayi-anak",
-  "Otomotif & Aksesoris": "otomotif",
-  "Perlengkapan Taman & Outdoor": "taman-outdoor",
-  "Peralatan Kantor & Industri": "kantor-industri",
-  "Kosmetik & Perawatan Diri": "kosmetik",
-};
 
 const categories = [
   { label: "Elektronik & Gadget", icon: "bi-phone", slug: "elektronik" },
@@ -45,52 +39,37 @@ const categories = [
   { label: "Kosmetik & Perawatan Diri", icon: "bi-heart", slug: "kosmetik" },
 ];
 
+const API_BASE_URL = "http://localhost:8000/api"; // Ganti jika beda
+
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<"recent" | CategoryKey>("recent");
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
-  const [allFetchedProducts, setAllFetchedProducts] = useState<Record<CategoryKey, Product[]>>({
-    elektronik: [],
-    pakaian: [],
-    perabotan: [],
-    buku: [],
-    hobi: [],
-    "bayi-anak": [],
-    otomotif: [],
-    "taman-outdoor": [],
-    "kantor-industri": [],
-    kosmetik: [],
-  });
+  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    getAllAvailableProducts().then((res) => {
-      const dataByCategory: Record<CategoryKey, Product[]> = {
-        elektronik: [],
-        pakaian: [],
-        perabotan: [],
-        buku: [],
-        hobi: [],
-        "bayi-anak": [],
-        otomotif: [],
-        "taman-outdoor": [],
-        "kantor-industri": [],
-        kosmetik: [],
-      };
-
-      res.forEach((item) => {
-        const slug = categoryMap[item.category];
-        if (slug) {
-          dataByCategory[slug].push(item);
-        }
+    axios.get(`${API_BASE_URL}/produk`)
+      .then((res) => {
+        const products = res.data.map((item: any) => ({
+          name: item.name,
+          price: item.price,
+          category: item.category,
+          image: item.image || macbookImage,
+        }));
+        setFetchedProducts(products);
+        const shuffled = [...products].sort(() => 0.5 - Math.random());
+        setRecentProducts(shuffled.slice(0, 7));
+      })
+      .catch((err) => {
+        console.error("Gagal fetch produk:", err);
       });
-
-      setAllFetchedProducts(dataByCategory);
-      const allItems = Object.values(dataByCategory).flat();
-      const shuffled = [...allItems].sort(() => 0.5 - Math.random());
-      setRecentProducts(shuffled.slice(0, 7));
-    });
   }, []);
 
-  const productList = selectedCategory === "recent" ? recentProducts : allFetchedProducts[selectedCategory];
+  const productList = selectedCategory === "recent"
+    ? recentProducts
+    : fetchedProducts.filter(p => {
+        const cat = categories.find(c => c.slug === selectedCategory);
+        return cat && p.category === cat.label;
+      });
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
