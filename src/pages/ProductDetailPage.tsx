@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import axios from 'axios';
 
 type Product = {
   id: number;
@@ -18,11 +18,21 @@ type Product = {
   penitip_rating: number;
 };
 
+interface Diskusi {
+  id: number;
+  isi: string;
+  created_at: string;
+  pembeli: {
+    nama: string;
+  };
+}
+
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedImage, setSelectedImage] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
+  const [diskusi, setDiskusi] = useState<Diskusi[]>([]); // ✅ added state
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -31,11 +41,21 @@ export default function ProductDetailPage() {
         setProduct(res.data);
         setSelectedImage(res.data.image);
       } catch (err) {
-        console.error("Gagal mengambil data produk", err);
+        console.error('Gagal mengambil data produk', err);
+      }
+    };
+
+    const fetchDiskusi = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/produk/${id}/diskusi`);
+        setDiskusi(res.data);
+      } catch (err) {
+        console.error('Gagal mengambil data diskusi', err);
       }
     };
 
     fetchProduct();
+    fetchDiskusi();
   }, [id]);
 
   if (!product) return <div className="p-10 text-center">Loading...</div>;
@@ -58,7 +78,7 @@ export default function ProductDetailPage() {
                 src={product.image}
                 onClick={() => setSelectedImage(product.image)}
                 className={`w-10 h-10 border rounded cursor-pointer object-contain bg-[#CFCAB5] ${
-                  selectedImage === product.image ? "ring-2 ring-[#5B8482]" : ""
+                  selectedImage === product.image ? 'ring-2 ring-[#5B8482]' : ''
                 }`}
               />
             </div>
@@ -71,9 +91,15 @@ export default function ProductDetailPage() {
 
             <div>
               <p className="font-semibold underline">Detail</p>
-              <p>Garansi: <span className="italic">{product.garansi}</span></p>
-              <p>Berat: <span className="italic">{product.berat}</span></p>
-              <p>Kategori: <span className="italic">{product.category}</span></p>
+              <p>
+                Garansi: <span className="italic">{product.garansi}</span>
+              </p>
+              <p>
+                Berat: <span className="italic">{product.berat}</span>
+              </p>
+              <p>
+                Kategori: <span className="italic">{product.category}</span>
+              </p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
@@ -82,8 +108,7 @@ export default function ProductDetailPage() {
             <div className="whitespace-pre-line">
               {showMore
                 ? product.deskripsi
-                : product.deskripsi.slice(0, 100) +
-                  (product.deskripsi.length > 100 ? "..." : "")}
+                : product.deskripsi.slice(0, 100) + (product.deskripsi.length > 100 ? '...' : '')}
             </div>
 
             {product.deskripsi.length > 100 && (
@@ -91,7 +116,7 @@ export default function ProductDetailPage() {
                 className="text-[#2D4C41] font-bold text-sm inline-block mt-2"
                 onClick={() => setShowMore(!showMore)}
               >
-                {showMore ? "Lihat Sedikit" : "Lihat Selengkapnya"}
+                {showMore ? 'Lihat Sedikit' : 'Lihat Selengkapnya'}
               </button>
             )}
 
@@ -153,12 +178,32 @@ export default function ProductDetailPage() {
         {/* DISKUSI */}
         <div className="mt-12 border-t border-[#D8D8D8] pt-6">
           <h3 className="font-semibold mb-4 text-lg text-[#2D4C41]">Diskusi</h3>
-          <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg flex justify-between items-center">
-            <p>Belum ada diskusi mengenai produk ini. Langsung saja chat penjual yuk!</p>
-            <button className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]">
-              Chat Penjual
-            </button>
-          </div>
+
+          {diskusi.length === 0 ? (
+            <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg flex justify-between items-center">
+              <p>Belum ada diskusi mengenai produk ini. Langsung saja chat penjual yuk!</p>
+              <button className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]">
+                Chat Penjual
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {diskusi.map((d) => (
+                <div
+                  key={d.id}
+                  className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(d.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
 

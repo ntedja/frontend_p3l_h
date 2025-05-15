@@ -11,6 +11,7 @@ import MitraReuseMartPage from './pages/MitraReuseMartPage';
 import MulaiJualanPage from './pages/MulaiJualanPage';
 import ReuseMartCarePage from './pages/ReuseMartCarePage';
 import ProfilePage from './pages/ProfilePage';
+import AlamatPage from './pages/AlamatPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />
         <Route path="/registerorganisasi" element={<RegisterPageOrganisasi />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/alamat" element={<AlamatPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
