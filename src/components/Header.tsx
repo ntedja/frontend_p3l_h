@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 export default function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  {/* State to control the visibility of the logout modal */}
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,11 +18,13 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.clear();
     setIsLoggedIn(false);
+    {/* Close the logout modal */}
+    setShowLogoutModal(false);
     navigate('/login');
   };
 
   return (
-    <header className="w-full bg-[#FFF7E2] text-[#2D4C41] border-b border-gray-300 pt-4">
+    <header className="w-full bg-[#FFF7E2] text-[#2D4C41] border-b border-gray-300 pt-4 relative">
       <div className="max-w-full mx-auto px-12 py-3 flex flex-col gap-3">
         {/* ROW 1 */}
         <div className="flex justify-between text-sm text-[#48635B]">
@@ -87,7 +91,7 @@ export default function Header() {
                   onClick={() => navigate('/profile')}
                 />
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutModal(true)}
                   className="bg-[#48635B] text-white px-4 py-1.5 rounded"
                 >
                   Log Out
@@ -112,6 +116,34 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+            <h2 className="text-lg font-semibold mb-4 text-center text-[#2D4C41]">
+              Konfirmasi Logout
+            </h2>
+            <p className="mb-6 text-center text-[#48635B]">
+              Apakah Anda yakin ingin keluar dari akun Anda?
+            </p>
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={handleLogout}
+                className="bg-[#48635B] text-white px-5 py-2 rounded hover:bg-[#3a5a3e]"
+              >
+                Ya
+              </button>
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="bg-gray-300 text-gray-700 px-5 py-2 rounded hover:bg-gray-400"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
