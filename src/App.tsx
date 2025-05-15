@@ -17,7 +17,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/produk/:slug" element={<ProductDetailPage />} />
+        <Route path="/produk/:id" element={<ProductDetailPage />} />
         <Route path="/tentang-reusemart" element={<TentangReuseMartPage />} />
         <Route path="/mitra-reusemart" element={<MitraReuseMartPage />} />
         <Route path="/mulai-jualan" element={<MulaiJualanPage />} />
