@@ -1,10 +1,23 @@
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingCart, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoImage from '../assets/logo.png';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function Header() {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    navigate('/login');
+  };
 
   return (
     <header className="w-full bg-[#FFF7E2] text-[#2D4C41] border-b border-gray-300 pt-4">
@@ -25,20 +38,23 @@ export default function Header() {
             </div>
           </div>
           <nav className="flex items-center gap-5 font-normal">
-            <a href="/tentang-reusemart" className="hover:text-[#2D4C41]">Tentang ReuseMart</a>
-            <a href="/mitra-reusemart" className="hover:text-[#2D4C41]">Mitra ReuseMart</a>
-            <a href="/mulai-jualan" className="hover:text-[#2D4C41]">Mulai Jualan</a>
-            <a href="/reusemart-care" className="hover:text-[#2D4C41]">ReuseMart Care</a>
+            <Link to="/tentang-reusemart" className="hover:text-[#2D4C41]">Tentang ReuseMart</Link>
+            <Link to="/mitra-reusemart" className="hover:text-[#2D4C41]">Mitra ReuseMart</Link>
+            <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">Mulai Berjualan</Link>
+            <Link to="/reusemart-care" className="hover:text-[#2D4C41]">ReuseMart Care</Link>
           </nav>
         </div>
 
         {/* ROW 2 */}
         <div className="flex items-center gap-4 flex-wrap">
+          {/* Logo */}
           <div className="flex items-center gap-2 text-2xl font-bold text-[#48635B] whitespace-nowrap">
-            <Link to="/" className="flex items-center">
-              <img src={logoImage} alt="ReuseMart Logo" className="w-17 h-10 cursor-pointer" />
+            <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer">
+              <img src={logoImage} alt="ReuseMart Logo" className="w-17 h-10" />
             </Link>
           </div>
+
+          {/* Search Bar */}
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#48635B] w-4 h-4" />
             <input
@@ -47,20 +63,36 @@ export default function Header() {
               className="w-full border border-[#48635B] rounded-xl pl-10 pr-4 py-2 text-sm bg-transparent text-[#48635B] placeholder:text-[#48635B] focus:outline-none focus:ring-1 focus:ring-[#48635B]"
             />
           </div>
-           <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-            <ShoppingCart className="w-5 h-5 text-[#48635B]" />
-            <button
-              onClick={() => navigate('/login')}
-              className="bg-[#48635B] text-white px-4 py-1.5 rounded"
-            >
-              Masuk
-            </button>
-            <button
-              onClick={() => navigate('/register')}
-              className="bg-[#48635B] text-white px-4 py-1.5 rounded"
-            >
-              Daftar
-            </button>
+
+          {/* User Actions */}
+          <div className="flex items-center gap-2 text-sm whitespace-nowrap ml-5">
+            {isLoggedIn ? (
+              <>
+                <ShoppingCart className="w-5 h-5 text-[#48635B] cursor-pointer mr-3" />
+                <User className="w-5 h-5 text-[#48635B] cursor-pointer mr-3" />
+                <button
+                  onClick={handleLogout}
+                  className="bg-[#48635B] text-white px-4 py-1.5 rounded"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="bg-[#48635B] text-white px-4 py-1.5 rounded"
+                >
+                  Masuk
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="bg-[#48635B] text-white px-4 py-1.5 rounded"
+                >
+                  Daftar
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
