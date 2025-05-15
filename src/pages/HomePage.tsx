@@ -14,17 +14,17 @@ type Product = {
   image: string;
 };
 
-type CategoryKey =
-  | "elektronik"
-  | "pakaian"
-  | "perabotan"
-  | "buku"
-  | "hobi"
-  | "bayi-anak"
-  | "otomotif"
-  | "taman-outdoor"
-  | "kantor-industri"
-  | "kosmetik";
+  type CategoryKey =
+    | 'elektronik'
+    | 'pakaian'
+    | 'perabotan'
+    | 'buku'
+    | 'hobi'
+    | 'bayi-anak'
+    | 'otomotif'
+    | 'taman-outdoor'
+    | 'kantor-industri'
+    | 'kosmetik';
 
 const categories = [
   { label: "Elektronik & Gadget", value: "Elektronik", icon: "bi-phone", slug: "elektronik" },
@@ -41,10 +41,10 @@ const categories = [
 
 const API_BASE_URL = "http://localhost:8000/api";
 
-export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<"recent" | CategoryKey>("recent");
-  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
-  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
+  export default function HomePage() {
+    const [selectedCategory, setSelectedCategory] = useState<'recent' | CategoryKey>('recent');
+    const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+    const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/produk`)
@@ -75,9 +75,9 @@ export default function HomePage() {
         return category && p.category === category.label;
       });
 
-  return (
-    <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
-      <Header />
+    return (
+      <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
+        <Header />
 
       <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
         {/* Hero */}
@@ -156,7 +156,7 @@ export default function HomePage() {
         </motion.section>
       </main>
 
-      <Footer />
-    </div>
-  );
-}
+        <Footer />
+      </div>
+    );
+  }
