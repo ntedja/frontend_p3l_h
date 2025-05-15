@@ -25,7 +25,9 @@ export default function Header() {
         {/* ROW 1 */}
         <div className="flex justify-between text-sm text-[#48635B]">
           <div className="flex items-center gap-2 font-normal">
-            <a href="#" className="hover:underline">Download</a>
+            <a href="#" className="hover:underline">
+              Download
+            </a>
             <span>|</span>
             <span>Ikuti kami di</span>
             <div className="flex items-center gap-2 ml-1">
@@ -38,10 +40,18 @@ export default function Header() {
             </div>
           </div>
           <nav className="flex items-center gap-5 font-normal">
-            <Link to="/tentang-reusemart" className="hover:text-[#2D4C41]">Tentang ReuseMart</Link>
-            <Link to="/mitra-reusemart" className="hover:text-[#2D4C41]">Mitra ReuseMart</Link>
-            <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">Mulai Berjualan</Link>
-            <Link to="/reusemart-care" className="hover:text-[#2D4C41]">ReuseMart Care</Link>
+            <Link to="/tentang-reusemart" className="hover:text-[#2D4C41]">
+              Tentang ReuseMart
+            </Link>
+            <Link to="/mitra-reusemart" className="hover:text-[#2D4C41]">
+              Mitra ReuseMart
+            </Link>
+            <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">
+              Mulai Berjualan
+            </Link>
+            <Link to="/reusemart-care" className="hover:text-[#2D4C41]">
+              ReuseMart Care
+            </Link>
           </nav>
         </div>
 
@@ -49,7 +59,10 @@ export default function Header() {
         <div className="flex items-center gap-4 flex-wrap">
           {/* Logo */}
           <div className="flex items-center gap-2 text-2xl font-bold text-[#48635B] whitespace-nowrap">
-            <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer"
+            >
               <img src={logoImage} alt="ReuseMart Logo" className="w-17 h-10" />
             </Link>
           </div>
@@ -69,7 +82,10 @@ export default function Header() {
             {isLoggedIn ? (
               <>
                 <ShoppingCart className="w-5 h-5 text-[#48635B] cursor-pointer mr-3" />
-                <User className="w-5 h-5 text-[#48635B] cursor-pointer mr-3" />
+                <User
+                  className="w-5 h-5 text-[#48635B] cursor-pointer mr-3"
+                  onClick={() => navigate('/profile')}
+                />
                 <button
                   onClick={handleLogout}
                   className="bg-[#48635B] text-white px-4 py-1.5 rounded"
