@@ -1,3 +1,4 @@
+// services/api.ts
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
@@ -21,10 +22,17 @@ if (token) {
 // ========================
 
 export interface Barang {
+  id: number;
   name: string;
   price: string;
   category: string;
   image: string;
+}
+
+export interface RequestData {
+  ID_BARANG: number;
+  DESKRIPSI_REQUEST: string;
+  STATUS_REQUEST: string;
 }
 
 export interface ApiResponse {
@@ -48,6 +56,23 @@ export const getBarangList = async (): Promise<Barang[]> => {
     const axiosError = error as AxiosError<ApiResponse>;
     const fallbackError = {
       message: 'Gagal mengambil data barang',
+    };
+    throw axiosError.response?.data || fallbackError;
+  }
+};
+
+// ========================
+// REQUEST API FUNCTION
+// ========================
+
+export const createRequest = async (data: RequestData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/requests', data);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    const fallbackError = {
+      message: 'Gagal membuat request',
     };
     throw axiosError.response?.data || fallbackError;
   }
