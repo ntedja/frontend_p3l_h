@@ -24,6 +24,8 @@ export default function LoginPage() {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('email', email);
+      localStorage.setItem('user', JSON.stringify(res.data.user)); // ✅ Tambahkan ini
+
       if (res.data.role === 'pegawai') {
         localStorage.setItem('jabatan', res.data.jabatan);
       }
