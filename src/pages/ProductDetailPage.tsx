@@ -20,7 +20,7 @@ type Product = {
 
 interface Diskusi {
   id: number;
-  isi: string;
+  isi: string; // alias untuk PERTANYAAN
   created_at: string;
   pembeli: {
     nama: string;
@@ -32,7 +32,9 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
-  const [diskusi, setDiskusi] = useState<Diskusi[]>([]); // ✅ added state
+  const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
+  const [newDiskusi, setNewDiskusi] = useState('');
+  const [showFormDiskusi, setShowFormDiskusi] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -48,7 +50,15 @@ export default function ProductDetailPage() {
     const fetchDiskusi = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/produk/${id}/diskusi`);
-        setDiskusi(res.data);
+        const diskusiData = res.data.map((d: any) => ({
+          id: d.ID_DISKUSI,
+          isi: d.PERTANYAAN,
+          created_at: d.CREATE_AT,
+          pembeli: {
+            nama: d.pembeli?.NAMA_PEMBELI || 'Pengguna',
+          },
+        }));
+        setDiskusi(diskusiData);
       } catch (err) {
         console.error('Gagal mengambil data diskusi', err);
       }
@@ -58,12 +68,50 @@ export default function ProductDetailPage() {
     fetchDiskusi();
   }, [id]);
 
+  const handleSubmitDiskusi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDiskusi.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token'); // pastikan ada token
+      const user = JSON.parse(localStorage.getItem('user') || '{}'); // ambil ID_PEMBELI
+
+      const res = await axios.post(
+        `http://localhost:8000/api/produk/${id}/diskusi`,
+        {
+          PERTANYAAN: newDiskusi,
+          ID_PEMBELI: user.ID_PEMBELI,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const newItem = res.data.data;
+
+      setDiskusi((prev) => [
+        ...prev,
+        {
+          id: newItem.ID_DISKUSI,
+          isi: newItem.PERTANYAAN,
+          created_at: newItem.CREATE_AT,
+          pembeli: { nama: user.NAMA_PEMBELI }, // pastikan cocok
+        },
+      ]);
+      setNewDiskusi('');
+    } catch (err) {
+      console.error('Gagal mengirim diskusi', err);
+      alert('Gagal mengirim diskusi. Periksa apakah kamu sudah login dan data valid.');
+    }
+  };
+
   if (!product) return <div className="p-10 text-center">Loading...</div>;
 
   return (
     <div className="bg-[#FFF7E2] text-[#1E2B32] min-h-screen">
       <Header />
-
       <main className="max-w-[1200px] mx-auto px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Gambar */}
@@ -91,20 +139,13 @@ export default function ProductDetailPage() {
 
             <div>
               <p className="font-semibold underline">Detail</p>
-              <p>
-                Garansi: <span className="italic">{product.garansi}</span>
-              </p>
-              <p>
-                Berat: <span className="italic">{product.berat}</span>
-              </p>
-              <p>
-                Kategori: <span className="italic">{product.category}</span>
-              </p>
+              <p>Garansi: <span className="italic">{product.garansi}</span></p>
+              <p>Berat: <span className="italic">{product.berat}</span></p>
+              <p>Kategori: <span className="italic">{product.category}</span></p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Deskripsi lengkap */}
             <div className="whitespace-pre-line">
               {showMore
                 ? product.deskripsi
@@ -122,7 +163,6 @@ export default function ProductDetailPage() {
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Penjual */}
             <div className="flex items-center gap-4 pt-4">
               <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(product.penitip_name)}`}
@@ -142,7 +182,6 @@ export default function ProductDetailPage() {
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Pengiriman */}
             <div>
               <p className="font-semibold">Pengiriman</p>
               <div className="flex justify-between items-center text-sm">
@@ -180,14 +219,38 @@ export default function ProductDetailPage() {
           <h3 className="font-semibold mb-4 text-lg text-[#2D4C41]">Diskusi</h3>
 
           {diskusi.length === 0 ? (
-            <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg flex justify-between items-center">
-              <p>Belum ada diskusi mengenai produk ini. Langsung saja chat penjual yuk!</p>
-              <button className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]">
-                Chat Penjual
-              </button>
+            <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg">
+              <div className="flex justify-between items-center">
+                <p>Belum ada diskusi mengenai produk ini. Langsung saja mulai diskusi yuk!</p>
+                {!showFormDiskusi && (
+                  <button
+                    onClick={() => setShowFormDiskusi(true)}
+                    className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]"
+                  >
+                    Mulai Diskusi
+                  </button>
+                )}
+              </div>
+              {showFormDiskusi && (
+                <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                  <input
+                    type="text"
+                    value={newDiskusi}
+                    onChange={(e) => setNewDiskusi(e.target.value)}
+                    placeholder="Tulis pertanyaanmu di sini..."
+                    className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                  >
+                    Kirim
+                  </button>
+                </form>
+              )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 mb-6">
               {diskusi.map((d) => (
                 <div
                   key={d.id}
@@ -202,11 +265,26 @@ export default function ProductDetailPage() {
                   <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
                 </div>
               ))}
+
+              <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                <input
+                  type="text"
+                  value={newDiskusi}
+                  onChange={(e) => setNewDiskusi(e.target.value)}
+                  placeholder="Tulis pertanyaanmu di sini..."
+                  className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                />
+                <button
+                  type="submit"
+                  className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                >
+                  Kirim
+                </button>
+              </form>
             </div>
           )}
         </div>
       </main>
-
       <Footer />
     </div>
   );
