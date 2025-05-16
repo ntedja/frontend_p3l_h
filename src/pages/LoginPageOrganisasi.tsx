@@ -40,8 +40,7 @@ export default function LoginPageOrganisasi() {
             onClick={() => navigate('/')}
             className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer"
           >
-            <img src="/logo.png" alt="Logo" className="w-17 h-10" />
-            ReuseMart
+            <img src={logoImage} alt="Logo" className="w-17 h-10" />
           </div>
           <h1 className="text-2xl font-semibold text-black">Log in</h1>
         </div>
@@ -90,6 +89,12 @@ export default function LoginPageOrganisasi() {
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
+              </div>
+
+              <div className="flex justify-end mt-2">
+                <a href="/forgot-password" className="text-sm text-[#3E5B50] hover:underline">
+                  Lupa password?
+                </a>
               </div>
 
               {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}

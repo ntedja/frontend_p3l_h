@@ -1,12 +1,10 @@
-// KatalogRequest.tsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import homePageImage from '../assets/homePage.jpeg';
-import { getBarangList, createRequest } from '../api/barangService';
+import { getBarangListRequest, createRequest, getOrganisasiRequests } from '../api/barangService';
 
 type Product = {
   id: number;
@@ -14,6 +12,7 @@ type Product = {
   price: string;
   category: string;
   image: string;
+  images: string[];
 };
 
 type CategoryKey =
@@ -64,17 +63,37 @@ export default function KatalogRequest() {
   const [requestDescription, setRequestDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [requestedProductIds, setRequestedProductIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const products = await getBarangList();
+        // Fetch available products
+        const barangList = await getBarangListRequest();
+
+        // Map Barang[] to Product[] with fallback for 'images'
+        const products: Product[] = barangList.map((barang: any) => ({
+          id: barang.id,
+          name: barang.name,
+          price: barang.price,
+          category: barang.category,
+          image: barang.image,
+          images: barang.images ?? [barang.image], // fallback ke image utama jika tidak ada array
+        }));
         setAvailableProducts(products);
+
+        // Fetch requests for the logged-in organization
+        const requests = await getOrganisasiRequests();
+        // Hanya ambil ID_BARANG dari request dengan status 'Menunggu'
+        const requestedIds = requests
+          .filter((req: any) => req.STATUS_REQUEST === 'Menunggu')
+          .map((req: any) => req.ID_BARANG);
+        setRequestedProductIds(requestedIds);
       } catch (err) {
-        console.error('Gagal fetch produk tersedia:', err);
+        console.error('Gagal fetch data:', err);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
@@ -91,6 +110,8 @@ export default function KatalogRequest() {
       setRequestDescription('');
       setIsModalOpen(false);
       setSelectedProductId(null);
+      // Update requested product IDs
+      setRequestedProductIds((prev) => [...prev, selectedProductId]);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.message || 'Gagal membuat request');
@@ -206,11 +227,17 @@ export default function KatalogRequest() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
                   >
-                    <img
+                    {/* <img
                       src={product.image}
                       alt={product.name}
                       onError={(e) => (e.currentTarget.src = '/images/default.jpg')}
                       className="h-24 object-contain mb-2 self-center"
+                    /> */}
+                    <img
+                      src={product.images?.[0] || product.image}
+                      alt={product.name}
+                      onError={(e) => (e.currentTarget.src = '/images/default.jpg')}
+                      className="h-24 object-contain mb-2 self-center rounded"
                     />
                     <div className="pl-1 w-full">
                       <h3 className="text-sm font-semibold mb-0.5">{product.name}</h3>
@@ -223,15 +250,21 @@ export default function KatalogRequest() {
                         >
                           Lihat Detail
                         </Link>
-                        <button
-                          onClick={() => {
-                            setSelectedProductId(product.id);
-                            setIsModalOpen(true);
-                          }}
-                          className="text-xs text-white bg-[#48635B] px-2 py-1 rounded hover:bg-[#2D4C41]"
-                        >
-                          Request
-                        </button>
+                        {requestedProductIds.includes(product.id) ? (
+                          <span className="text-xs text-white bg-gray-500 px-2 py-1 rounded">
+                            Menunggu
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedProductId(product.id);
+                              setIsModalOpen(true);
+                            }}
+                            className="text-xs text-white bg-[#48635B] px-2 py-1 rounded hover:bg-[#2D4C41]"
+                          >
+                            Request
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
