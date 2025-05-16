@@ -13,6 +13,7 @@ import ReuseMartCarePage from './pages/ReuseMartCarePage';
 import ProfilePage from './pages/ProfilePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import KatalogRequest from './pages/KatalogRequest';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/reusemart-care" element={<ReuseMartCarePage />} />
         <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />
         <Route path="/registerorganisasi" element={<RegisterPageOrganisasi />} />
+        <Route path="/katalogrequest" element={<KatalogRequest />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
