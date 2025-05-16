@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import axios from 'axios';
 
 type Product = {
   id: number;
@@ -10,6 +10,7 @@ type Product = {
   price: string;
   category: string;
   image: string;
+  images: string[];
   garansi: string;
   berat: string;
   deskripsi: string;
@@ -21,7 +22,7 @@ type Product = {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedImage, setSelectedImage] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function ProductDetailPage() {
         setProduct(res.data);
         setSelectedImage(res.data.image);
       } catch (err) {
-        console.error("Gagal mengambil data produk", err);
+        console.error('Gagal mengambil data produk', err);
       }
     };
 
@@ -46,21 +47,26 @@ export default function ProductDetailPage() {
 
       <main className="max-w-[1200px] mx-auto px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* Gambar */}
           <div className="flex flex-col items-center lg:items-start w-full lg:w-1/3">
             <img
               src={selectedImage}
               alt={product.name}
               className="w-full h-[280px] object-contain border border-gray-300 rounded-md bg-[#CFCAB5]"
             />
-            <div className="flex gap-2 mt-3">
-              <img
-                src={product.image}
-                onClick={() => setSelectedImage(product.image)}
-                className={`w-10 h-10 border rounded cursor-pointer object-contain bg-[#CFCAB5] ${
-                  selectedImage === product.image ? "ring-2 ring-[#5B8482]" : ""
-                }`}
-              />
+            <div
+              className="flex flex-row 
+            flex-wrap gap-2 mt-3"
+            >
+              {product.images?.map((imgUrl, index) => (
+                <img
+                  key={index}
+                  src={imgUrl}
+                  onClick={() => setSelectedImage(imgUrl)}
+                  className={`w-10 h-10 border rounded cursor-pointer object-contain bg-[#CFCAB5] ${
+                    selectedImage === imgUrl ? 'ring-2 ring-[#5B8482]' : ''
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
@@ -71,9 +77,15 @@ export default function ProductDetailPage() {
 
             <div>
               <p className="font-semibold underline">Detail</p>
-              <p>Garansi: <span className="italic">{product.garansi}</span></p>
-              <p>Berat: <span className="italic">{product.berat}</span></p>
-              <p>Kategori: <span className="italic">{product.category}</span></p>
+              <p>
+                Garansi: <span className="italic">{product.garansi}</span>
+              </p>
+              <p>
+                Berat: <span className="italic">{product.berat}</span>
+              </p>
+              <p>
+                Kategori: <span className="italic">{product.category}</span>
+              </p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
@@ -82,8 +94,7 @@ export default function ProductDetailPage() {
             <div className="whitespace-pre-line">
               {showMore
                 ? product.deskripsi
-                : product.deskripsi.slice(0, 100) +
-                  (product.deskripsi.length > 100 ? "..." : "")}
+                : product.deskripsi.slice(0, 100) + (product.deskripsi.length > 100 ? '...' : '')}
             </div>
 
             {product.deskripsi.length > 100 && (
@@ -91,7 +102,7 @@ export default function ProductDetailPage() {
                 className="text-[#2D4C41] font-bold text-sm inline-block mt-2"
                 onClick={() => setShowMore(!showMore)}
               >
-                {showMore ? "Lihat Sedikit" : "Lihat Selengkapnya"}
+                {showMore ? 'Lihat Sedikit' : 'Lihat Selengkapnya'}
               </button>
             )}
 

@@ -92,7 +92,10 @@ export default function Header() {
           <div className="flex items-center gap-2 text-sm whitespace-nowrap ml-5">
             {isLoggedIn ? (
               <>
-                <ShoppingCart className="w-5 h-5 text-[#48635B] cursor-pointer mr-3" />
+                <ShoppingCart
+                  className="w-5 h-5 text-[#48635B] cursor-pointer mr-3"
+                  onClick={() => navigate('/historyrequest')}
+                />
                 <User
                   className="w-5 h-5 text-[#48635B] cursor-pointer mr-3"
                   onClick={() => navigate('/profile')}

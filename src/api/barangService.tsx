@@ -1,4 +1,3 @@
-// services/api.ts
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
@@ -61,6 +60,18 @@ export const getBarangList = async (): Promise<Barang[]> => {
   }
 };
 
+export const getBarangListRequest = async (): Promise<Barang[]> => {
+  try {
+    const response: AxiosResponse<Barang[]> = await api.get('/barang/request');
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    const fallbackError = {
+      message: 'Gagal mengambil data barang',
+    };
+    throw axiosError.response?.data || fallbackError;
+  }
+};
 // ========================
 // REQUEST API FUNCTION
 // ========================
@@ -73,6 +84,23 @@ export const createRequest = async (data: RequestData): Promise<ApiResponse> => 
     const axiosError = error as AxiosError<ApiResponse>;
     const fallbackError = {
       message: 'Gagal membuat request',
+    };
+    throw axiosError.response?.data || fallbackError;
+  }
+};
+
+// ========================
+// ORGANISASI REQUESTS API FUNCTION
+// ========================
+
+export const getOrganisasiRequests = async (): Promise<RequestData[]> => {
+  try {
+    const response: AxiosResponse<RequestData[]> = await api.get('/requests/organisasi');
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    const fallbackError = {
+      message: 'Gagal mengambil data request organisasi',
     };
     throw axiosError.response?.data || fallbackError;
   }
