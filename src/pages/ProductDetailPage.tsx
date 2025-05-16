@@ -3,11 +3,6 @@ import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import axios from 'axios';
 
 type Product = {
   id: number;
@@ -92,7 +87,7 @@ export default function ProductDetailPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const newItem = res.data.data;
@@ -249,7 +244,10 @@ export default function ProductDetailPage() {
                 )}
               </div>
               {showFormDiskusi && (
-                <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                <form
+                  onSubmit={handleSubmitDiskusi}
+                  className="flex flex-col md:flex-row gap-3 mt-4"
+                >
                   <input
                     type="text"
                     value={newDiskusi}
