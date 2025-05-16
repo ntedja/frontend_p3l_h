@@ -20,6 +20,7 @@ if (token) {
 // INTERFACES
 // ========================
 
+//Pembeli
 interface PembeliRegisterData {
   NAMA_PEMBELI: string;
   TGL_LAHIR_PEMBELI: string;
@@ -41,6 +42,21 @@ interface ApiResponse {
   token?: string;
   user?: any;
   errors?: Record<string, string[]>;
+}
+
+//Organisasi
+interface OrganisasiRegisterData {
+  NAMA_ORGANISASI: string;
+  ALAMAT_ORGANISASI: string;
+  NO_TELP_ORGANISASI: string;
+  EMAIL_ORGANISASI: string;
+  PASSWORD_ORGANISASI: string;
+  PASSWORD_ORGANISASI_confirmation: string;
+}
+
+interface OrganisasiLoginData {
+  EMAIL_ORGANISASI: string;
+  PASSWORD_ORGANISASI: string;
 }
 
 // ========================
@@ -129,6 +145,54 @@ export const pegawaiSignIn = async (data: { EMAIL_PEGAWAI: string; PASSWORD_PEGA
     throw (
       error.response?.data || {
         message: 'Terjadi kesalahan saat login pegawai',
+      }
+    );
+  }
+};
+
+// ========================
+// ORGANISASI
+// ========================
+
+export const registerOrganisasi = async (data: OrganisasiRegisterData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/organisasi/register', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat registrasi organisasi',
+      }
+    );
+  }
+};
+
+export const loginOrganisasi = async (data: OrganisasiLoginData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/organisasi/login', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat login organisasi',
       }
     );
   }

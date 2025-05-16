@@ -7,7 +7,9 @@ import { Link } from 'react-router-dom';
 export default function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  {/* State to control the visibility of the logout modal */}
+  {
+    /* State to control the visibility of the logout modal */
+  }
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
@@ -18,7 +20,9 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.clear();
     setIsLoggedIn(false);
-    {/* Close the logout modal */}
+    {
+      /* Close the logout modal */
+    }
     setShowLogoutModal(false);
     navigate('/login');
   };
@@ -50,8 +54,11 @@ export default function Header() {
             <Link to="/mitra-reusemart" className="hover:text-[#2D4C41]">
               Mitra ReuseMart
             </Link>
-            <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">
+            {/* <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">
               Mulai Berjualan
+            </Link> */}
+            <Link to="/loginorganisasi" className="hover:text-[#2D4C41]">
+              Request Donasi
             </Link>
             <Link to="/reusemart-care" className="hover:text-[#2D4C41]">
               ReuseMart Care
