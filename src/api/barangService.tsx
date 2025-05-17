@@ -1,107 +1,52 @@
 import axios from 'axios';
-import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api'; // Sesuaikan dengan URL backend Anda
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const getBarangListPublic = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/barang/available`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public barang list:', error);
+    throw new Error('Gagal mengambil data barang');
+  }
+};
 
-// Set token jika ada
-const token = localStorage.getItem('token');
-if (token) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
-
-// ========================
-// INTERFACES
-// ========================
-
-export interface Barang {
-  id: number;
-  name: string;
-  price: string;
-  category: string;
-  image: string;
-}
-
-export interface RequestData {
+export const createRequest = async (data: {
   ID_BARANG: number;
   DESKRIPSI_REQUEST: string;
   STATUS_REQUEST: string;
-}
-
-export interface ApiResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-  token?: string;
-  user?: any;
-  errors?: Record<string, string[]>;
-}
-
-// ========================
-// BARANG API FUNCTION
-// ========================
-
-export const getBarangList = async (): Promise<Barang[]> => {
+  PENERIMA: string;
+}) => {
   try {
-    const response: AxiosResponse<Barang[]> = await api.get('/produk');
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Anda harus login terlebih dahulu');
+
+    const response = await axios.post(`${API_BASE_URL}/requests`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiResponse>;
-    const fallbackError = {
-      message: 'Gagal mengambil data barang',
-    };
-    throw axiosError.response?.data || fallbackError;
+  } catch (error: any) {
+    console.error('Error creating request:', error);
+    throw new Error(error.response?.data?.message || 'Gagal membuat request');
   }
 };
 
-export const getBarangListRequest = async (): Promise<Barang[]> => {
+export const getOrganisasiRequests = async () => {
   try {
-    const response: AxiosResponse<Barang[]> = await api.get('/barang/request');
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Anda harus login terlebih dahulu');
+
+    const response = await axios.get(`${API_BASE_URL}/organisasi/requests`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<ApiResponse>;
-    const fallbackError = {
-      message: 'Gagal mengambil data barang',
-    };
-    throw axiosError.response?.data || fallbackError;
-  }
-};
-// ========================
-// REQUEST API FUNCTION
-// ========================
-
-export const createRequest = async (data: RequestData): Promise<ApiResponse> => {
-  try {
-    const response: AxiosResponse<ApiResponse> = await api.post('/requests', data);
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiResponse>;
-    const fallbackError = {
-      message: 'Gagal membuat request',
-    };
-    throw axiosError.response?.data || fallbackError;
-  }
-};
-
-// ========================
-// ORGANISASI REQUESTS API FUNCTION
-// ========================
-
-export const getOrganisasiRequests = async (): Promise<RequestData[]> => {
-  try {
-    const response: AxiosResponse<RequestData[]> = await api.get('/requests/organisasi');
-    return response.data;
-  } catch (error) {
-    const axiosError = error as AxiosError<ApiResponse>;
-    const fallbackError = {
-      message: 'Gagal mengambil data request organisasi',
-    };
-    throw axiosError.response?.data || fallbackError;
+    console.error('Error fetching organisasi requests:', error);
+    throw new Error('Gagal mengambil data request organisasi');
   }
 };

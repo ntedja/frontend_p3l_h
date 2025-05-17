@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import homePageImage from '../assets/homePage.jpeg';
-import { getBarangListRequest, createRequest, getOrganisasiRequests } from '../api/barangService';
+import { getBarangListPublic, createRequest, getOrganisasiRequests } from '../api/barangService';
 
 type Product = {
   id: number;
   name: string;
   price: string;
   category: string;
-  image: string;
+  image: string;  
   images: string[];
+  status: string;
 };
 
 type CategoryKey =
@@ -64,57 +65,89 @@ export default function KatalogRequest() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [requestedProductIds, setRequestedProductIds] = useState<number[]>([]);
+  const [penerima, setPenerima] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Fungsi pengecekan auth tanpa file terpisah
+  const isAuthenticated = () => {
+    const token = localStorage.getItem('token');
+    return !!token;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
-        // Fetch available products
-        const barangList = await getBarangListRequest();
+        const barangList = await getBarangListPublic();
+        const availableBarang = barangList.filter((barang: any) => barang.status === 'tersedia');
 
-        // Map Barang[] to Product[] with fallback for 'images'
-        const products: Product[] = barangList.map((barang: any) => ({
+        const products: Product[] = availableBarang.map((barang: any) => ({
           id: barang.id,
           name: barang.name,
           price: barang.price,
           category: barang.category,
           image: barang.image,
-          images: barang.images ?? [barang.image], // fallback ke image utama jika tidak ada array
+          images: barang.images ?? [barang.image],
+          status: barang.status,
         }));
+
         setAvailableProducts(products);
 
-        // Fetch requests for the logged-in organization
-        const requests = await getOrganisasiRequests();
-        // Hanya ambil ID_BARANG dari request dengan status 'Menunggu'
-        const requestedIds = requests
-          .filter((req: any) => req.STATUS_REQUEST === 'Menunggu')
-          .map((req: any) => req.ID_BARANG);
-        setRequestedProductIds(requestedIds);
-      } catch (err) {
+        if (isAuthenticated()) {
+          try {
+            const requests = await getOrganisasiRequests();
+            const requestedIds = requests
+              .filter((req: any) => req.STATUS_REQUEST === 'Menunggu')
+              .map((req: any) => req.ID_BARANG);
+            setRequestedProductIds(requestedIds);
+          } catch (err) {
+            console.log('Tidak bisa mengambil data request');
+          }
+        }
+      } catch (err: any) {
         console.error('Gagal fetch data:', err);
+        setError(err.message || 'Gagal memuat data barang');
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProductId) return;
+
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+
+    if (!selectedProductId || !penerima) {
+      setError('Harap isi semua field yang diperlukan');
+      return;
+    }
 
     try {
-      const response = await createRequest({
+      await createRequest({
         ID_BARANG: selectedProductId,
         DESKRIPSI_REQUEST: requestDescription,
         STATUS_REQUEST: 'Menunggu',
+        PENERIMA: penerima,
       });
-      setSuccess(response.message);
+
+      setSuccess('Request berhasil dikirim!');
       setRequestDescription('');
+      setPenerima('');
       setIsModalOpen(false);
       setSelectedProductId(null);
-      // Update requested product IDs
       setRequestedProductIds((prev) => [...prev, selectedProductId]);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.message || 'Gagal membuat request');
+      setError(err.message || 'Gagal membuat request donasi');
       setTimeout(() => setError(null), 3000);
     }
   };
@@ -124,15 +157,48 @@ export default function KatalogRequest() {
       ? availableProducts
       : availableProducts.filter((p) => {
           const category = categories.find((c) => c.slug === selectedCategory);
-          return category && p.category === category.label;
+          return category && p.category === category.value;
         });
+
+  const renderRequestButton = (productId: number) => {
+    if (!isAuthenticated()) {
+      return (
+        <button
+          onClick={() => navigate('/login', { state: { from: location.pathname } })}
+          className="px-4 py-2 bg-[#48635B] text-white rounded hover:bg-[#2D4C41] transition-colors"
+        >
+          Login untuk Request
+        </button>
+      );
+    }
+
+    if (requestedProductIds.includes(productId)) {
+      return (
+        <button disabled className="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
+          Request Dikirim
+        </button>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => {
+          setSelectedProductId(productId);
+          setIsModalOpen(true);
+        }}
+        className="px-4 py-2 bg-[#48635B] text-white rounded hover:bg-[#2D4C41] transition-colors"
+      >
+        Request Barang
+      </button>
+    );
+  };
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] w-full">
       <Header />
 
       <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-        {/* Hero */}
+        {/* Hero Section */}
         <motion.section
           className="py-8"
           initial={{ opacity: 0 }}
@@ -147,7 +213,7 @@ export default function KatalogRequest() {
           />
         </motion.section>
 
-        {/* Kategori */}
+        {/* Categories */}
         <motion.section
           className="py-10"
           initial={{ opacity: 0, y: 20 }}
@@ -169,6 +235,7 @@ export default function KatalogRequest() {
                 Semua Kategori
               </span>
             </motion.div>
+
             {categories.map((item, i) => (
               <motion.div
                 key={i}
@@ -188,7 +255,7 @@ export default function KatalogRequest() {
           </div>
         </motion.section>
 
-        {/* Produk Tersedia */}
+        {/* Products Section */}
         <motion.section
           className="py-10"
           initial={{ opacity: 0, y: 20 }}
@@ -202,80 +269,71 @@ export default function KatalogRequest() {
               : categories.find((c) => c.slug === selectedCategory)?.label ?? 'Barang Tersedia'}
           </h2>
 
+          {!isAuthenticated() && (
+            <div className="mb-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+              Anda perlu login untuk dapat melakukan request barang.
+              <Link
+                to="/login"
+                state={{ from: location.pathname }}
+                className="text-[#48635B] font-medium ml-1"
+              >
+                Login disini
+              </Link>
+            </div>
+          )}
+
           {success && (
             <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-lg">{success}</div>
           )}
           {error && <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">{error}</div>}
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedCategory}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.4 }}
-            >
-              {productList.length > 0 ? (
-                productList.map((product, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex flex-col items-start w-full"
-                    whileHover={{ scale: 1.02 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                  >
-                    {/* <img
-                      src={product.image}
-                      alt={product.name}
-                      onError={(e) => (e.currentTarget.src = '/images/default.jpg')}
-                      className="h-24 object-contain mb-2 self-center"
-                    /> */}
-                    <img
-                      src={product.images?.[0] || product.image}
-                      alt={product.name}
-                      onError={(e) => (e.currentTarget.src = '/images/default.jpg')}
-                      className="h-24 object-contain mb-2 self-center rounded"
-                    />
-                    <div className="pl-1 w-full">
-                      <h3 className="text-sm font-semibold mb-0.5">{product.name}</h3>
-                      <p className="text-sm font-medium mb-0.5">{product.price}</p>
-                      <span className="text-xs text-[#48635B]">{product.category}</span>
-                      <div className="mt-2 flex gap-2">
-                        <Link
-                          to={`/produk/${product.id}`}
-                          className="text-xs text-black font-semibold inline-block hover:underline"
-                        >
-                          Lihat Detail
-                        </Link>
-                        {requestedProductIds.includes(product.id) ? (
-                          <span className="text-xs text-white bg-gray-500 px-2 py-1 rounded">
-                            Menunggu
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setSelectedProductId(product.id);
-                              setIsModalOpen(true);
-                            }}
-                            className="text-xs text-white bg-[#48635B] px-2 py-1 rounded hover:bg-[#2D4C41]"
-                          >
-                            Request
-                          </button>
-                        )}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#48635B]"></div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {productList.length > 0 ? (
+                  productList.map((product) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <div className="h-48 overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                    </div>
-                  </motion.div>
-                ))
-              ) : (
-                <p className="text-sm text-[#48635B] col-span-full text-center">
-                  Tidak ada barang tersedia di kategori ini.
-                </p>
-              )}
-            </motion.div>
-          </AnimatePresence>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+                        <p className="text-[#48635B] font-medium mb-2">Rp {product.price}</p>
+                        <p className="text-sm text-gray-600 mb-4">{product.category}</p>
+                        <div className="flex justify-between items-center">
+                          <Link
+                            to={`/barang/${product.id}`}
+                            className="text-[#48635B] hover:underline text-sm"
+                          >
+                            Detail
+                          </Link>
+                          {renderRequestButton(product.id)}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500">Tidak ada barang tersedia dalam kategori ini</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </motion.section>
 
         {/* Request Modal */}
@@ -288,23 +346,36 @@ export default function KatalogRequest() {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-white p-6 rounded-lg max-w-md w-full"
+                className="bg-white p-6 rounded-lg max-w-md w-full mx-4"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
               >
-                <h3 className="text-lg font-semibold mb-4">Buat Request Barang</h3>
+                <h3 className="text-lg font-semibold mb-4">Buat Request Donasi</h3>
                 <form onSubmit={handleRequestSubmit}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Penerima Donasi</label>
+                    <input
+                      type="text"
+                      value={penerima}
+                      onChange={(e) => setPenerima(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-[#48635B] focus:border-transparent"
+                      placeholder="Nama penerima donasi"
+                      required
+                    />
+                  </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Deskripsi Request</label>
                     <textarea
                       value={requestDescription}
                       onChange={(e) => setRequestDescription(e.target.value)}
-                      className="w-full p-2 border rounded"
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-[#48635B] focus:border-transparent"
                       rows={4}
                       maxLength={255}
+                      placeholder="Jelaskan kebutuhan dan alasan request ini"
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">Maksimal 255 karakter</p>
                   </div>
                   <div className="flex justify-end gap-2">
                     <button
@@ -312,15 +383,16 @@ export default function KatalogRequest() {
                       onClick={() => {
                         setIsModalOpen(false);
                         setRequestDescription('');
+                        setPenerima('');
                         setSelectedProductId(null);
                       }}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#48635B] text-white rounded hover:bg-[#2D4C41]"
+                      className="px-4 py-2 bg-[#48635B] text-white rounded hover:bg-[#2D4C41] transition-colors"
                     >
                       Kirim Request
                     </button>
