@@ -21,7 +21,8 @@ type Product = {
 
 interface Diskusi {
   id: number;
-  isi: string; // alias untuk PERTANYAAN
+  isi: string;
+  jawaban?: string | null;
   created_at: string;
   pembeli: {
     nama: string;
@@ -54,6 +55,7 @@ export default function ProductDetailPage() {
         const diskusiData = res.data.map((d: any) => ({
           id: d.ID_DISKUSI,
           isi: d.PERTANYAAN,
+          jawaban: d.JAWABAN || null,
           created_at: d.CREATE_AT,
           pembeli: {
             nama: d.pembeli?.NAMA_PEMBELI || 'Pengguna',
@@ -278,6 +280,13 @@ export default function ProductDetailPage() {
                     </p>
                   </div>
                   <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
+
+                  {d.jawaban && (
+                    <div className="mt-3 ml-4 pl-4 border-l-2 border-[#5B8482] text-sm text-[#2D4C41] bg-[#F0F7F7] rounded-md">
+                      <p className="font-semibold mb-1">Admin</p>
+                      <p>{d.jawaban}</p>
+                    </div>
+                  )}
                 </div>
               ))}
 
