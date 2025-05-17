@@ -35,6 +35,20 @@ interface LoginData {
   PASSWORD_PEMBELI: string;
 }
 
+interface PenitipRegisterData {
+  NAMA_PENITIP: string;
+  ALAMAT_PENITIP: string;
+  NO_TELP_PENITIP: string;
+  EMAIL_PENITIP: string;
+  PASSWORD_PENITIP: string;
+  PASSWORD_PENITIP_confirmation: string;
+}
+
+interface PenitipLoginData {
+  EMAIL_PENITIP: string;
+  PASSWORD_PENITIP: string;
+}
+
 interface ApiResponse {
   success: boolean;
   message: string;
@@ -226,3 +240,61 @@ export const getErrorMessage = (error: ApiResponse): string => {
   return error.message || 'Terjadi kesalahan';
 };
 
+export const registerPenitip = async (data: PenitipRegisterData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/register', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat registrasi penitip',
+      }
+    );
+  }
+};
+
+export const loginPenitip = async (data: PenitipLoginData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/login', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat login penitip',
+      }
+    );
+  }
+};
+
+export const logoutPenitip = async (): Promise<void> => {
+  try {
+    await api.post('/penitip/logout');
+  } catch (error) {
+    console.error('Penitip logout error:', error);
+  } finally {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    if (api.defaults.headers) {
+      delete api.defaults.headers.common['Authorization'];
+    }
+  }
+};
