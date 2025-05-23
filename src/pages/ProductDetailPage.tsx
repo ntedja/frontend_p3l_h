@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
@@ -31,12 +31,14 @@ interface Diskusi {
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
   const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
   const [newDiskusi, setNewDiskusi] = useState('');
   const [showFormDiskusi, setShowFormDiskusi] = useState(false);
+  const [inCart, setInCart] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -67,17 +69,38 @@ export default function ProductDetailPage() {
       }
     };
 
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (cart.some((item: Product) => item.id.toString() === id)) {
+      setInCart(true);
+    }
+
     fetchProduct();
     fetchDiskusi();
   }, [id]);
+
+  const handleCartToggle = () => {
+    const cart: Product[] = JSON.parse(localStorage.getItem('cart') || '[]');
+
+    if (inCart) {
+      const updatedCart = cart.filter((item) => item.id.toString() !== id);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      setInCart(false);
+    } else {
+      if (product) {
+        cart.push(product);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        setInCart(true);
+      }
+    }
+  };
 
   const handleSubmitDiskusi = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDiskusi.trim()) return;
 
     try {
-      const token = localStorage.getItem('token'); // pastikan ada token
-      const user = JSON.parse(localStorage.getItem('user') || '{}'); // ambil ID_PEMBELI
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
 
       const res = await axios.post(
         `http://localhost:8000/api/produk/${id}/diskusi`,
@@ -89,7 +112,7 @@ export default function ProductDetailPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       const newItem = res.data.data;
@@ -100,7 +123,7 @@ export default function ProductDetailPage() {
           id: newItem.ID_DISKUSI,
           isi: newItem.PERTANYAAN,
           created_at: newItem.CREATE_AT,
-          pembeli: { nama: user.NAMA_PEMBELI }, // pastikan cocok
+          pembeli: { nama: user.NAMA_PEMBELI },
         },
       ]);
       setNewDiskusi('');
@@ -117,16 +140,14 @@ export default function ProductDetailPage() {
       <Header />
       <main className="max-w-[1200px] mx-auto px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-10">
+          {/* Gambar Produk */}
           <div className="flex flex-col items-center lg:items-start w-full lg:w-1/3">
             <img
               src={selectedImage}
               alt={product.name}
               className="w-full h-[280px] object-contain border border-gray-300 rounded-md bg-[#CFCAB5]"
             />
-            <div
-              className="flex flex-row 
-            flex-wrap gap-2 mt-3"
-            >
+            <div className="flex flex-row flex-wrap gap-2 mt-3">
               {product.images?.map((imgUrl, index) => (
                 <img
                   key={index}
@@ -147,15 +168,9 @@ export default function ProductDetailPage() {
 
             <div>
               <p className="font-semibold underline">Detail</p>
-              <p>
-                Garansi: <span className="italic">{product.garansi}</span>
-              </p>
-              <p>
-                Berat: <span className="italic">{product.berat}</span>
-              </p>
-              <p>
-                Kategori: <span className="italic">{product.category}</span>
-              </p>
+              <p>Garansi: <span className="italic">{product.garansi}</span></p>
+              <p>Berat: <span className="italic">{product.berat}</span></p>
+              <p>Kategori: <span className="italic">{product.category}</span></p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
@@ -177,6 +192,7 @@ export default function ProductDetailPage() {
 
             <hr className="border-[#5DA3A2]" />
 
+            {/* Info Penitip */}
             <div className="flex items-center gap-4 pt-4">
               <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(product.penitip_name)}`}
@@ -196,6 +212,7 @@ export default function ProductDetailPage() {
 
             <hr className="border-[#5DA3A2]" />
 
+            {/* Info Pengiriman */}
             <div>
               <p className="font-semibold">Pengiriman</p>
               <div className="flex justify-between items-center text-sm">
@@ -216,13 +233,22 @@ export default function ProductDetailPage() {
               <span className="text-[#1E2B32]">{product.price}</span>
             </div>
             <p className="text-[#2D4C41] font-semibold mb-3">Tersedia</p>
-            <button className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2">
-              Tambahkan ke Keranjang
+
+            <button
+              className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
+              onClick={() => navigate('/checkout')}
+            >
+              Beli Sekarang
             </button>
-            <button className="w-full py-2 rounded border border-[#48635B] text-[#2D4C41] mb-6">
-              Tambahkan ke Keranjang
+            <button
+              className={`w-full py-2 rounded border mb-6 ${inCart
+                ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]'
+                : 'border-[#48635B] text-[#2D4C41]'}`}
+              onClick={handleCartToggle}
+            >
+              {inCart ? 'Hapus dari Keranjang' : 'Tambahkan ke Keranjang'}
             </button>
-            <button className="bg-[#A8D0CF] text-white w-full py-2 rounded border border-[#5B8482]">
+            <button className="bg-[#4f9897] text-white w-full py-2 rounded border border-[#5B8482]">
               Sukai
             </button>
           </div>
@@ -246,10 +272,7 @@ export default function ProductDetailPage() {
                 )}
               </div>
               {showFormDiskusi && (
-                <form
-                  onSubmit={handleSubmitDiskusi}
-                  className="flex flex-col md:flex-row gap-3 mt-4"
-                >
+                <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
                   <input
                     type="text"
                     value={newDiskusi}
@@ -269,10 +292,7 @@ export default function ProductDetailPage() {
           ) : (
             <div className="space-y-4 mb-6">
               {diskusi.map((d) => (
-                <div
-                  key={d.id}
-                  className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3"
-                >
+                <div key={d.id} className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
                     <p className="text-xs text-gray-500">
