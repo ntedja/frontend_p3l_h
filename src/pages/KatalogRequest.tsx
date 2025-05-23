@@ -4,14 +4,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import homePageImage from '../assets/homePage.jpeg';
-import { getBarangListPublic, createRequest, getOrganisasiRequests } from '../api/barangService';
+import { getBarangListPublic, getOrganisasiRequests, createRequest } from '../api/barangService';
 
 type Product = {
   id: number;
   name: string;
   price: string;
   category: string;
-  image: string;  
+  image: string;
   images: string[];
   status: string;
 };
@@ -71,7 +71,6 @@ export default function KatalogRequest() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Fungsi pengecekan auth tanpa file terpisah
   const isAuthenticated = () => {
     const token = localStorage.getItem('token');
     return !!token;
@@ -81,34 +80,43 @@ export default function KatalogRequest() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const barangList = await getBarangListPublic();
-        const availableBarang = barangList.filter((barang: any) => barang.status === 'tersedia');
+        // Fetch available products
+        const barangResponse = await getBarangListPublic();
+        console.log('Barang API response:', barangResponse); // Debug log
 
-        const products: Product[] = availableBarang.map((barang: any) => ({
-          id: barang.id,
-          name: barang.name,
-          price: barang.price,
-          category: barang.category,
-          image: barang.image,
-          images: barang.images ?? [barang.image],
-          status: barang.status,
+        if (!barangResponse?.success) {
+          throw new Error('API response indicates failure');
+        }
+
+        const products: Product[] = (barangResponse.data || []).map((barang: any) => ({
+          id: barang.id || 0,
+          name: barang.name || 'Unknown Product',
+          price: (barang.price || 0).toString(),
+          category: barang.category || 'Unknown',
+          image: barang.image || 'placeholder.jpg',
+          images: barang.images ?? [barang.image || 'placeholder.jpg'],
+          status: barang.status || 'Unknown',
         }));
 
         setAvailableProducts(products);
 
+        // Fetch organization requests if authenticated
         if (isAuthenticated()) {
           try {
-            const requests = await getOrganisasiRequests();
-            const requestedIds = requests
-              .filter((req: any) => req.STATUS_REQUEST === 'Menunggu')
-              .map((req: any) => req.ID_BARANG);
-            setRequestedProductIds(requestedIds);
+            const requestsResponse = await getOrganisasiRequests();
+            console.log('Requests API response:', requestsResponse); // Debug log
+            if (requestsResponse.success) {
+              const requestedIds = (requestsResponse.data || [])
+                .filter((req: any) => req.STATUS_REQUEST === 'Menunggu')
+                .map((req: any) => req.ID_BARANG);
+              setRequestedProductIds(requestedIds);
+            }
           } catch (err) {
-            console.log('Tidak bisa mengambil data request');
+            console.warn('Failed to fetch request data:', err);
           }
         }
       } catch (err: any) {
-        console.error('Gagal fetch data:', err);
+        console.error('Failed to fetch data:', err);
         setError(err.message || 'Gagal memuat data barang');
       } finally {
         setIsLoading(false);
@@ -273,7 +281,7 @@ export default function KatalogRequest() {
             <div className="mb-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
               Anda perlu login untuk dapat melakukan request barang.
               <Link
-                to="/login"
+                to="/loginorganisasi"
                 state={{ from: location.pathname }}
                 className="text-[#48635B] font-medium ml-1"
               >

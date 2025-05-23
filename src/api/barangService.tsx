@@ -1,14 +1,20 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api'; // Sesuaikan dengan URL backend Anda
+const API_BASE_URL = 'http://localhost:8000/api';
 
 export const getBarangListPublic = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/barang/available`);
+    const response = await axios.get(`${API_BASE_URL}/produk`);
+    console.log('getBarangListPublic response:', response.data); // Debug log
     return response.data;
-  } catch (error) {
-    console.error('Error fetching public barang list:', error);
-    throw new Error('Gagal mengambil data barang');
+  } catch (error: any) {
+    console.error('Error fetching public barang list:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: `${API_BASE_URL}/barang/available`,
+    });
+    throw new Error(error.response?.data?.message || 'Gagal mengambil data barang');
   }
 };
 
@@ -29,7 +35,11 @@ export const createRequest = async (data: {
     });
     return response.data;
   } catch (error: any) {
-    console.error('Error creating request:', error);
+    console.error('Error creating request:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw new Error(error.response?.data?.message || 'Gagal membuat request');
   }
 };
@@ -39,14 +49,19 @@ export const getOrganisasiRequests = async () => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Anda harus login terlebih dahulu');
 
-    const response = await axios.get(`${API_BASE_URL}/organisasi/requests`, {
+    const response = await axios.get(`${API_BASE_URL}/barang/request`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    console.log('getOrganisasiRequests response:', response.data); // Debug log
     return response.data;
-  } catch (error) {
-    console.error('Error fetching organisasi requests:', error);
-    throw new Error('Gagal mengambil data request organisasi');
+  } catch (error: any) {
+    console.error('Error fetching organisasi requests:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw new Error(error.response?.data?.message || 'Gagal mengambil data request organisasi');
   }
 };
