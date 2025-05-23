@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { CheckCircleIcon, XCircleIcon, ClockIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Pesanan {
   id: number;
@@ -15,6 +16,7 @@ interface Pesanan {
 export default function RiwayatPesananPage() {
   const [pesanan, setPesanan] = useState<Pesanan[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // ✅ ini ditambahkan untuk menghindari error
 
   useEffect(() => {
     setTimeout(() => {
@@ -125,7 +127,10 @@ export default function RiwayatPesananPage() {
                   </div>
 
                   <div className="flex justify-end">
-                    <button className="text-sm px-4 py-2 rounded-md border border-[#5B8482] text-[#5B8482] hover:bg-[#E6F0EE] transition">
+                    <button
+                      onClick={() => navigate(`/pesanan/${p.id}`)}
+                      className="text-sm px-4 py-2 rounded-md border border-[#5B8482] text-[#5B8482] hover:bg-[#E6F0EE] transition"
+                    >
                       Lihat Detail
                     </button>
                   </div>

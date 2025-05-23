@@ -17,6 +17,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import KatalogRequest from './pages/KatalogRequest';
 import HistoryRequest from './pages/HistoryRequest';
 import RiwayatPesananPage from './pages/RiwayatPesananPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
     </BrowserRouter>
   );
