@@ -76,7 +76,7 @@ export default function HomePage() {
             price: item.price,
             category: catObj?.label || item.category,
             image: item.image,
-            images: item.images ?? [], // tambahkan ini agar bisa diakses di halaman detail
+            images: item.images ?? [],
           };
         });
         setFetchedProducts(products);
