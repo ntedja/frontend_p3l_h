@@ -245,7 +245,7 @@ export default function AlamatPage() {
 
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
-        const response = await axios.delete(`http://localhost:8000/api/alamat/${id}`, {
+        const response = await axios.delete(`http://localhost:8000/api/pembeli/me/alamat/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -303,7 +303,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/alamat/${editingAddress.ID_ALAMAT}`,
+        `http://localhost:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
