@@ -45,7 +45,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/:id" element={<CheckoutPage />} />
       </Routes>
     </BrowserRouter>
   );

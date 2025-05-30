@@ -112,7 +112,7 @@ export default function ProductDetailPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const newItem = res.data.data;
@@ -168,9 +168,15 @@ export default function ProductDetailPage() {
 
             <div>
               <p className="font-semibold underline">Detail</p>
-              <p>Garansi: <span className="italic">{product.garansi}</span></p>
-              <p>Berat: <span className="italic">{product.berat}</span></p>
-              <p>Kategori: <span className="italic">{product.category}</span></p>
+              <p>
+                Garansi: <span className="italic">{product.garansi}</span>
+              </p>
+              <p>
+                Berat: <span className="italic">{product.berat}</span>
+              </p>
+              <p>
+                Kategori: <span className="italic">{product.category}</span>
+              </p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
@@ -236,14 +242,16 @@ export default function ProductDetailPage() {
 
             <button
               className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate(`/checkout/${product.id}`)}
             >
               Beli Sekarang
             </button>
             <button
-              className={`w-full py-2 rounded border mb-6 ${inCart
-                ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]'
-                : 'border-[#48635B] text-[#2D4C41]'}`}
+              className={`w-full py-2 rounded border mb-6 ${
+                inCart
+                  ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]'
+                  : 'border-[#48635B] text-[#2D4C41]'
+              }`}
               onClick={handleCartToggle}
             >
               {inCart ? 'Hapus dari Keranjang' : 'Tambahkan ke Keranjang'}
@@ -272,7 +280,10 @@ export default function ProductDetailPage() {
                 )}
               </div>
               {showFormDiskusi && (
-                <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                <form
+                  onSubmit={handleSubmitDiskusi}
+                  className="flex flex-col md:flex-row gap-3 mt-4"
+                >
                   <input
                     type="text"
                     value={newDiskusi}
@@ -292,7 +303,10 @@ export default function ProductDetailPage() {
           ) : (
             <div className="space-y-4 mb-6">
               {diskusi.map((d) => (
-                <div key={d.id} className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3">
+                <div
+                  key={d.id}
+                  className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3"
+                >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
                     <p className="text-xs text-gray-500">
