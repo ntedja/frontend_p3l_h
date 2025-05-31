@@ -33,13 +33,13 @@ export interface Pesanan {
   item_count: number;
   alamat_pengiriman?: string;
   metode_pembayaran?: string;
-  bukti_transfer?: string; // New entity
-  tanggal_ambil_kirim?: string; // New entity
-  tanggal_lunas_pembelian?: string; // New entity
-  delivery_method?: string; // New entity
-  poin_didapat?: number; // New entity
-  poin_potongan?: number; // New entity
-  status_bukti_transfer?: string; // New entity
+  bukti_transfer?: string;
+  tanggal_ambil_kirim?: string;
+  tanggal_lunas_pembelian?: string;
+  delivery_method?: string;
+  poin_didapat?: number;
+  poin_potongan?: number;
+  status_bukti_transfer?: string;
   items?: PesananItem[];
 }
 
@@ -140,7 +140,6 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
 
   if (pesananId === null) return null;
 
-  // Helper to format dates
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -150,7 +149,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
         year: 'numeric',
       });
     } catch (e) {
-      return dateString; // Return original if invalid date
+      return dateString;
     }
   };
 
@@ -177,8 +176,6 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           </div>
         ) : pesananDetail ? (
           <div className="space-y-6">
-            {' '}
-            {/* Increased space-y for better separation of sections */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Kode Pesanan:</p>
@@ -192,9 +189,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status:</p>
-                <p
-                  className={`font-semibold text-lg ${getStatusStyle(pesananDetail.status).color}`}
-                >
+                <p className={`font-semibold text-lg ${getStatusStyle(pesananDetail.status).color}`}>
                   {pesananDetail.status}
                 </p>
               </div>
@@ -205,7 +200,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                 </p>
               </div>
             </div>
-            {/* Section for Delivery Information */}
+
             {(pesananDetail.alamat_pengiriman ||
               pesananDetail.metode_pembayaran ||
               pesananDetail.delivery_method ||
@@ -248,7 +243,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                 </div>
               </div>
             )}
-            {/* Section for Payment Status and Points */}
+
             {(pesananDetail.bukti_transfer ||
               pesananDetail.status_bukti_transfer ||
               pesananDetail.tanggal_lunas_pembelian ||
@@ -296,6 +291,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                 </div>
               </div>
             )}
+
             {pesananDetail.items && pesananDetail.items.length > 0 && (
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">Item Pesanan</h3>
@@ -330,7 +326,6 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
   );
 };
 
-// Helper function for status styling (moved outside component for reusability)
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case 'selesai':
@@ -347,7 +342,7 @@ const getStatusStyle = (status: string) => {
         border: 'border-red-300',
         icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
       };
-    default: // For 'Diproses' and other statuses
+    default:
       return {
         color: 'text-yellow-700',
         bg: 'bg-yellow-50',
@@ -362,9 +357,31 @@ export default function RiwayatPesananPage() {
   const [pesanan, setPesanan] = useState<Pesanan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<{ [key: number]: number }>({});
 
   const [selectedPesananId, setSelectedPesananId] = useState<number | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  const submitRating = async (id: number, rating: number) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        alert('Anda belum login.');
+        return;
+      }
+      await api.post(
+        `/pesanan/${id}/rating`,
+        { rating },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert(`Rating ${rating} bintang berhasil dikirim!`);
+    } catch (error) {
+      console.error('Gagal kirim rating:', error);
+      alert('Gagal kirim rating.');
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -449,7 +466,26 @@ export default function RiwayatPesananPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Rating:</span>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => {
+                              setRatings((prev) => ({ ...prev, [p.id]: star }));
+                              submitRating(p.id, star);
+                            }}
+                            className={`text-xl ${
+                              ratings[p.id] >= star ? 'text-yellow-500' : 'text-gray-300'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <button
                       onClick={() => handleLihatDetail(p.id)}
                       className="text-sm px-4 py-2 rounded-md border border-[#5B8482] text-[#5B8482] hover:bg-[#E6F0EE] transition"
@@ -464,10 +500,9 @@ export default function RiwayatPesananPage() {
         )}
       </main>
 
-      {/* Pesanan Detail Modal */}
       {showDetailModal && (
         <PesananDetailModal pesananId={selectedPesananId} onClose={handleCloseDetailModal} />
       )}
     </div>
   );
-}
+} 
