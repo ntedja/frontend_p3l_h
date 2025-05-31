@@ -1,112 +1,42 @@
 import { useEffect, useState } from 'react';
-import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon } from 'lucide-react';
-import axios from 'axios';
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  XIcon,
+  StarIcon,
+} from 'lucide-react';
 
-// --- API Functions ---
-const API_BASE_URL = 'http://localhost:8000/api';
+import type { Pesanan, PesananItem } from '../api/apiRiwayatPembelian';
+import {
+  fetchRiwayatPesanan,
+  fetchPesananDetail,
+  submitRatingBarang,
+} from '../api/apiRiwayatPembelian';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Supaya kita bisa memanggil fetchPesananDetail di console (opsional)
+;(window as any).fetchPesananDetail = fetchPesananDetail;
 
 export const getToken = (): string | null => {
   return localStorage.getItem('token');
 };
 
-interface PesananItem {
-  id: number;
-  nama_produk: string;
-  jumlah: number;
-  harga_satuan: number;
-  subtotal: number;
-}
-
-export interface Pesanan {
-  id: number;
-  kode: string;
-  tanggal: string;
-  status: string;
-  total: number;
-  item_count: number;
-  alamat_pengiriman?: string;
-  metode_pembayaran?: string;
-  bukti_transfer?: string;
-  tanggal_ambil_kirim?: string;
-  tanggal_lunas_pembelian?: string;
-  delivery_method?: string;
-  poin_didapat?: number;
-  poin_potongan?: number;
-  status_bukti_transfer?: string;
-  items?: PesananItem[];
-}
-
-export const fetchRiwayatPesanan = async (token: string): Promise<Pesanan[]> => {
-  try {
-    const response = await api.get('/pesanan', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
-
-    if (response.data.success && Array.isArray(response.data.data)) {
-      return response.data.data;
-    }
-    throw new Error(response.data.message || 'Gagal mengambil data riwayat pesanan');
-  } catch (error: any) {
-    console.error('Error fetching riwayat pesanan:', error);
-    if (error.response) {
-      throw new Error(
-        error.response.data?.message || error.response.statusText || 'Terjadi kesalahan server',
-      );
-    } else if (error.request) {
-      throw new Error('Tidak ada respon dari server');
-    } else {
-      throw new Error(error.message || 'Terjadi kesalahan saat memuat data');
-    }
-  }
-};
-
-export const fetchPesananDetail = async (token: string, id: number): Promise<Pesanan> => {
-  try {
-    const response = await api.get(`/pesanan/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
-
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    }
-    throw new Error(response.data.message || `Gagal mengambil detail pesanan #${id}`);
-  } catch (error: any) {
-    console.error(`Error fetching pesanan detail for ID ${id}:`, error);
-    if (error.response) {
-      throw new Error(
-        error.response.data?.message || error.response.statusText || 'Terjadi kesalahan server',
-      );
-    } else if (error.request) {
-      throw new Error('Tidak ada respon dari server');
-    } else {
-      throw new Error(error.message || 'Terjadi kesalahan saat memuat detail data');
-    }
-  }
-};
-
-// --- PesananDetailModal Component ---
+// === Komponen PesananDetailModal ===
 interface PesananDetailModalProps {
   pesananId: number | null;
   onClose: () => void;
 }
 
-const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onClose }) => {
+const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
+  pesananId,
+  onClose,
+}) => {
   const [pesananDetail, setPesananDetail] = useState<Pesanan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // **Tambahkan state untuk menyimpan rating tiap item (item.id → rating)**
+  const [ratings, setRatings] = useState<Record<number, number>>({});
 
   useEffect(() => {
     if (pesananId === null) {
@@ -128,6 +58,13 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
         }
         const data = await fetchPesananDetail(token, pesananId);
         setPesananDetail(data);
+
+        // Inisialisasi ratings kosong untuk setiap item.id
+        const initialRatings: Record<number, number> = {};
+        data.items.forEach((item) => {
+          initialRatings[item.id] = 0;
+        });
+        setRatings(initialRatings);
       } catch (err: any) {
         setError(err.message || 'Terjadi kesalahan saat memuat detail pesanan');
       } finally {
@@ -148,9 +85,21 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
         month: 'long',
         year: 'numeric',
       });
-    } catch (e) {
+    } catch {
       return dateString;
     }
+  };
+
+  /**
+   * Fungsi untuk merender satu bintang: jika `filled=true` maka beri atribut `fill="currentColor"`
+   * sehingga ikon StarIcon akan tampil filled. Jika `filled=false`, tampilkan outline saja.
+   */
+  const renderStar = (filled: boolean) => {
+    return filled ? (
+      <StarIcon className="w-5 h-5 text-yellow-500" fill="currentColor" />
+    ) : (
+      <StarIcon className="w-5 h-5 text-gray-300" />
+    );
   };
 
   return (
@@ -164,7 +113,9 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           <XIcon className="w-6 h-6" />
         </button>
 
-        <h2 className="text-2xl font-bold text-[#1E2B32] mb-6 border-b pb-3">Detail Pesanan</h2>
+        <h2 className="text-2xl font-bold text-[#1E2B32] mb-6 border-b pb-3">
+          Detail Pesanan
+        </h2>
 
         {loading ? (
           <div className="text-center text-lg font-medium text-[#2D4C41] py-12">
@@ -176,10 +127,13 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           </div>
         ) : pesananDetail ? (
           <div className="space-y-6">
+            {/* --- Informasi Utama Pesanan --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Kode Pesanan:</p>
-                <p className="font-semibold text-lg text-[#1E2B32]">#{pesananDetail.kode}</p>
+                <p className="font-semibold text-lg text-[#1E2B32]">
+                  #{pesananDetail.kode}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Tanggal Pesanan:</p>
@@ -189,8 +143,12 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status:</p>
-                <p className={`font-semibold text-lg ${getStatusStyle(pesananDetail.status).color}`}>
-                  {pesananDetail.status}
+                <p
+                  className={`font-semibold text-lg ${
+                    getStatusStyle(pesananDetail.status_transaksi).color
+                  }`}
+                >
+                  {pesananDetail.status_transaksi}
                 </p>
               </div>
               <div>
@@ -201,6 +159,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               </div>
             </div>
 
+            {/* --- Informasi Pengiriman & Pembayaran --- */}
             {(pesananDetail.alamat_pengiriman ||
               pesananDetail.metode_pembayaran ||
               pesananDetail.delivery_method ||
@@ -229,7 +188,9 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   {pesananDetail.delivery_method && (
                     <div>
                       <p className="text-sm text-gray-600">Metode Pengiriman:</p>
-                      <p className="font-medium text-[#1E2B32]">{pesananDetail.delivery_method}</p>
+                      <p className="font-medium text-[#1E2B32]">
+                        {pesananDetail.delivery_method}
+                      </p>
                     </div>
                   )}
                   {pesananDetail.tanggal_ambil_kirim && (
@@ -244,6 +205,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               </div>
             )}
 
+            {/* --- Status Pembayaran & Poin --- */}
             {(pesananDetail.bukti_transfer ||
               pesananDetail.status_bukti_transfer ||
               pesananDetail.tanggal_lunas_pembelian ||
@@ -257,12 +219,16 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   {pesananDetail.bukti_transfer && (
                     <div>
                       <p className="text-sm text-gray-600">Bukti Transfer:</p>
-                      <p className="font-medium text-[#1E2B32]">{pesananDetail.bukti_transfer}</p>
+                      <p className="font-medium text-[#1E2B32]">
+                        {pesananDetail.bukti_transfer}
+                      </p>
                     </div>
                   )}
                   {pesananDetail.status_bukti_transfer && (
                     <div>
-                      <p className="text-sm text-gray-600">Status Bukti Transfer:</p>
+                      <p className="text-sm text-gray-600">
+                        Status Bukti Transfer:
+                      </p>
                       <p className="font-medium text-[#1E2B32]">
                         {pesananDetail.status_bukti_transfer}
                       </p>
@@ -270,7 +236,9 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   )}
                   {pesananDetail.tanggal_lunas_pembelian && (
                     <div>
-                      <p className="text-sm text-gray-600">Tanggal Lunas Pembelian:</p>
+                      <p className="text-sm text-gray-600">
+                        Tanggal Lunas Pembelian:
+                      </p>
                       <p className="font-medium text-[#1E2B32]">
                         {formatDate(pesananDetail.tanggal_lunas_pembelian)}
                       </p>
@@ -279,40 +247,90 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   {pesananDetail.poin_didapat !== undefined && (
                     <div>
                       <p className="text-sm text-gray-600">Poin Didapat:</p>
-                      <p className="font-medium text-[#1E2B32]">{pesananDetail.poin_didapat}</p>
+                      <p className="font-medium text-[#1E2B32]">
+                        {pesananDetail.poin_didapat}
+                      </p>
                     </div>
                   )}
                   {pesananDetail.poin_potongan !== undefined && (
                     <div>
                       <p className="text-sm text-gray-600">Poin Potongan:</p>
-                      <p className="font-medium text-[#1E2B32]">{pesananDetail.poin_potongan}</p>
+                      <p className="font-medium text-[#1E2B32]">
+                        {pesananDetail.poin_potongan}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {pesananDetail.items && pesananDetail.items.length > 0 && (
+            {/* --- Daftar Item Pesanan + Rating --- */}
+            {pesananDetail.items.length > 0 ? (
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">Item Pesanan</h3>
-                <div className="space-y-3">
-                  {pesananDetail.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex justify-between items-center bg-gray-50 p-3 rounded-md"
-                    >
-                      <div>
-                        <p className="font-medium text-[#1E2B32]">{item.nama_produk}</p>
-                        <p className="text-sm text-gray-600">
-                          {item.jumlah} x Rp {item.harga_satuan.toLocaleString('id-ID')}
-                        </p>
+                <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">
+                  Item Pesanan
+                </h3>
+                <div className="space-y-4">
+                  {pesananDetail.items.map((item: PesananItem) => {
+                    // Ambil rating yang sudah disimpan di state (jika belum ada, default = 0)
+                    const currentRating = ratings[item.id] || 0;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex justify-between items-start bg-gray-50 p-4 rounded-md"
+                      >
+                        <div>
+                          <p className="font-medium text-[#1E2B32]">
+                            {item.nama_produk}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {item.jumlah} x Rp{' '}
+                            {item.harga_satuan.toLocaleString('id-ID')}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2">
+                          <p className="font-semibold text-[#5B8482]">
+                            Rp {item.subtotal.toLocaleString('id-ID')}
+                          </p>
+
+                          {/* Tombol bintang untuk rating */}
+                          <div className="flex items-center space-x-1">
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              // Jika star <= currentRating → tampilkan “filled”, else outline
+                              const filled = star <= currentRating;
+                              return (
+                                <button
+                                  key={star}
+                                  onClick={async () => {
+                                    // 1) Submit ke server
+                                    await submitRatingBarang(item.id, star);
+                                    // 2) Save ke state lokal agar bintang terisi
+                                    setRatings((prev) => ({
+                                      ...prev,
+                                      [item.id]: star,
+                                    }));
+                                  }}
+                                  className="focus:outline-none"
+                                  title={`Beri ${star} bintang`}
+                                >
+                                  {renderStar(filled)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                      <p className="font-semibold text-[#5B8482]">
-                        Rp {item.subtotal.toLocaleString('id-ID')}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+              </div>
+            ) : (
+              <div className="border-t pt-4">
+                <p className="text-center text-gray-600">
+                  Tidak ada barang untuk dinilai.
+                </p>
               </div>
             )}
           </div>
@@ -326,6 +344,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
   );
 };
 
+/** Style helper untuk status pesanan */
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case 'selesai':
@@ -352,36 +371,14 @@ const getStatusStyle = (status: string) => {
   }
 };
 
-// --- RiwayatPesananPage Component ---
+// === Komponen Utama: RiwayatPesananPage ===
 export default function RiwayatPesananPage() {
   const [pesanan, setPesanan] = useState<Pesanan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [ratings, setRatings] = useState<{ [key: number]: number }>({});
 
   const [selectedPesananId, setSelectedPesananId] = useState<number | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-
-  const submitRating = async (id: number, rating: number) => {
-    try {
-      const token = getToken();
-      if (!token) {
-        alert('Anda belum login.');
-        return;
-      }
-      await api.post(
-        `/pesanan/${id}/rating`,
-        { rating },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      alert(`Rating ${rating} bintang berhasil dikirim!`);
-    } catch (error) {
-      console.error('Gagal kirim rating:', error);
-      alert('Gagal kirim rating.');
-    }
-  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -417,7 +414,9 @@ export default function RiwayatPesananPage() {
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] font-sans">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <h1 className="text-3xl font-bold mb-8 text-[#1E2B32]">Riwayat Pesanan</h1>
+        <h1 className="text-3xl font-bold mb-8 text-[#1E2B32]">
+          Riwayat Pesanan
+        </h1>
 
         {loading ? (
           <div className="text-center text-lg font-medium text-[#2D4C41] py-24">
@@ -434,7 +433,7 @@ export default function RiwayatPesananPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {pesanan.map((p) => {
-              const style = getStatusStyle(p.status);
+              const style = getStatusStyle(p.status_transaksi);
               return (
                 <div
                   key={p.id}
@@ -462,30 +461,11 @@ export default function RiwayatPesananPage() {
                       className={`flex items-center gap-2 px-3 py-1 rounded-full border ${style.bg} ${style.color}`}
                     >
                       {style.icon}
-                      <span className="text-sm font-medium">{p.status}</span>
+                      <span className="text-sm font-medium">{p.status_transaksi}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Rating:</span>
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => {
-                              setRatings((prev) => ({ ...prev, [p.id]: star }));
-                              submitRating(p.id, star);
-                            }}
-                            className={`text-xl ${
-                              ratings[p.id] >= star ? 'text-yellow-500' : 'text-gray-300'
-                            }`}
-                          >
-                            ★
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="flex justify-end">
                     <button
                       onClick={() => handleLihatDetail(p.id)}
                       className="text-sm px-4 py-2 rounded-md border border-[#5B8482] text-[#5B8482] hover:bg-[#E6F0EE] transition"
@@ -501,8 +481,11 @@ export default function RiwayatPesananPage() {
       </main>
 
       {showDetailModal && (
-        <PesananDetailModal pesananId={selectedPesananId} onClose={handleCloseDetailModal} />
+        <PesananDetailModal
+          pesananId={selectedPesananId}
+          onClose={handleCloseDetailModal}
+        />
       )}
     </div>
   );
-} 
+}
