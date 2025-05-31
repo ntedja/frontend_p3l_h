@@ -2,7 +2,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 type Product = {
   id: number;
@@ -62,6 +62,17 @@ function Modal({
 }
 
 export default function CheckoutPage() {
+  const navigate = useNavigate();
+  const handleOrder = () => {
+    if (deliveryMethod === 'ambil') {
+      // Navigasi ke halaman konfirmasi pesanan
+      navigate('/konfirmasi-pesanan');
+    } else if (deliveryMethod === 'kurir') {
+      // Navigasi ke halaman pembayaran
+      navigate('/pembayaran');
+    }
+  };
+
   const { id } = useParams<{ id: string }>();
 
   const [deliveryMethod, setDeliveryMethod] = useState<'kurir' | 'ambil'>('kurir');
@@ -257,10 +268,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="text-right mt-4">
-          <button
-            className="bg-[#48635B] text-white px-6 py-2 rounded-md"
-            onClick={() => alert('Pesanan berhasil dibuat!')}
-          >
+          <button className="bg-[#48635B] text-white px-6 py-2 rounded-md" onClick={handleOrder}>
             Buat Pesanan
           </button>
         </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Router } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -20,6 +20,8 @@ import KatalogRequest from './pages/KatalogRequest';
 import HistoryRequest from './pages/HistoryRequest';
 import RiwayatPesananPage from './pages/RiwayatPesananPage';
 import CheckoutPage from './pages/CheckoutPage';
+import KonfirmasiPesananPage from './pages/KonfirmasiPesananPage';
+import PembayaranPage from './pages/PembayaranPage';
 
 export default function App() {
   return (
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
         <Route path="/checkout/:id" element={<CheckoutPage />} />
+        <Route path="/konfirmasi-pesanan" element={<KonfirmasiPesananPage />} />
+        <Route path="/pembayaran" element={<PembayaranPage />} />
       </Routes>
     </BrowserRouter>
   );
