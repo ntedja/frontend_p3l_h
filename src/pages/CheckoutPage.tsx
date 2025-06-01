@@ -63,18 +63,8 @@ function Modal({
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const handleOrder = () => {
-    if (deliveryMethod === 'ambil') {
-      // Navigasi ke halaman konfirmasi pesanan
-      navigate('/konfirmasi-pesanan');
-    } else if (deliveryMethod === 'kurir') {
-      // Navigasi ke halaman pembayaran
-      navigate('/pembayaran');
-    }
-  };
 
   const { id } = useParams<{ id: string }>();
-
   const [deliveryMethod, setDeliveryMethod] = useState<'kurir' | 'ambil'>('kurir');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showMethodModal, setShowMethodModal] = useState(false);
@@ -94,6 +84,53 @@ export default function CheckoutPage() {
 
   const pointValue = 10000;
   const serviceFee = 2500;
+
+  const handleOrder = async () => {
+    if (!product) return;
+
+    if (deliveryMethod === 'kurir' && !selectedAlamatId) {
+      alert('Silakan pilih alamat pengiriman terlebih dahulu.');
+      return;
+    }
+
+    try {
+      const payload = {
+        metode_pengiriman: deliveryMethod,
+        id_alamat_pengiriman: deliveryMethod === 'kurir' ? selectedAlamatId : null,
+        items: [{ id: product.id, qty: 1 }],
+        poin_ditukar: usedPoints,
+      };
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Anda harus login terlebih dahulu.');
+        return;
+      }
+
+      const response = await axios.post('http://localhost:8000/api/checkout', payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const orderId = response.data.data?.ID_TRANSAKSI_PEMBELIAN;
+
+      if (!orderId) {
+        alert('Gagal mendapatkan ID transaksi. Silakan coba lagi.');
+        return;
+      }
+
+      navigate(`/pembayaran/${orderId}`, {
+        state: { transaksiId: orderId },
+      });
+    } catch (error: any) {
+      if (error.response && error.response.status === 422) {
+        console.error('Validation errors:', error.response.data.errors);
+        alert('Terjadi kesalahan validasi input. Periksa kembali data yang dimasukkan.');
+      } else {
+        console.error('Error saat membuat pesanan:', error);
+        alert('Gagal membuat pesanan. Silakan coba lagi.');
+      }
+    }
+  };
 
   const token = localStorage.getItem('token');
 
@@ -117,6 +154,7 @@ export default function CheckoutPage() {
         if (profileRes.data.success) setProfileData(profileRes.data.data);
         setProduct(productRes.data);
         setAddresses(addressRes.data.data);
+
         if (addressRes.data.data.length > 0) {
           setSelectedAlamatId(addressRes.data.data[0].ID_ALAMAT);
         }
@@ -166,6 +204,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="h-px bg-[#1E2B32] my-4" />
+
         {product && (
           <div className="flex flex-col gap-4 py-4">
             <div className="flex justify-between items-center">
@@ -198,7 +237,7 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <div className="h-px bg-[#1E2B32] my-4" />
+        <div className="h-px bg-[#2D4C41] my-4" />
 
         <div className="space-y-2">
           <h2 className="font-semibold">Metode Pengiriman</h2>

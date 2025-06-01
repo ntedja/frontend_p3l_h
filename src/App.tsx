@@ -48,8 +48,8 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
         <Route path="/checkout/:id" element={<CheckoutPage />} />
-        <Route path="/konfirmasi-pesanan" element={<KonfirmasiPesananPage />} />
-        <Route path="/pembayaran" element={<PembayaranPage />} />
+        <Route path="/konfirmasi-pesanan/:orderId" element={<KonfirmasiPesananPage />} />
+        <Route path="/pembayaran/:orderId" element={<PembayaranPage />} />
       </Routes>
     </BrowserRouter>
   );

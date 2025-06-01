@@ -1,44 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const PembayaranPage = () => {
+export default function PembayaranPage() {
+  const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(60); // 60 detik
+
+  const [file, setFile] = useState<File | null>(null);
+  const [timer, setTimer] = useState(60);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (timeLeft === 0) {
-      // Navigasi ke halaman konfirmasi pesanan setelah waktu habis
-      navigate('/konfirmasi-pesanan');
+    if (timer === 0) {
+      alert('Waktu pembayaran habis. Transaksi dibatalkan.');
+      const token = localStorage.getItem('token');
+      axios
+        .post(
+          `http://localhost:8000/api/checkout/${orderId}/batal`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        )
+        .then(() => {
+          navigate('/');
+        })
+        .catch(() => {
+          alert('Gagal membatalkan transaksi.');
+        });
+      return; // jangan buat interval lagi
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => prevTime - 1);
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeLeft, navigate]);
+    return () => clearInterval(interval);
+  }, [timer, orderId, navigate]);
 
-  const handleUpload = (e) => {
-    e.preventDefault();
-    // Logika untuk mengunggah bukti transfer
-    // Setelah berhasil, navigasi ke halaman konfirmasi pesanan
-    navigate('/konfirmasi-pesanan');
+  const handleSubmit = async () => {
+    if (!file) return alert('Pilih file bukti transfer.');
+
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('bukti_transfer', file);
+
+      await axios.post(`http://localhost:8000/api/checkout/${orderId}/upload-bukti`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      alert('Upload berhasil! Pesanan Anda akan segera diproses.');
+      navigate(`/konfirmasi-pesanan/${orderId}`);
+    } catch (error) {
+      alert('Upload gagal: ' + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFF7E2] text-[#2D4C41]">
-      <h1 className="text-2xl font-semibold mb-4">Pembayaran</h1>
-      <p className="mb-2">Silakan transfer ke rekening berikut:</p>
-      <p className="mb-4 font-semibold">Bank ABC - 1234567890 a.n. Reusemart</p>
-      <p className="mb-4">Waktu tersisa: {timeLeft} detik</p>
-      <form onSubmit={handleUpload} className="flex flex-col items-center">
-        <input type="file" accept="image/*" required className="mb-4" />
-        <button type="submit" className="bg-[#48635B] text-white px-4 py-2 rounded-md">
-          Upload Bukti Transfer
-        </button>
-      </form>
+    <div className="p-6 max-w-md mx-auto bg-white rounded shadow mt-20">
+      <h2 className="mb-4 font-semibold">Pembayaran</h2>
+      <p>
+        Nomor Rekening ReuseMart: <strong>1234567890 (Bank ABC)</strong>
+      </p>
+      <p className="mb-4">Silakan transfer dan upload bukti pembayaran di bawah.</p>
+      <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+      <button
+        disabled={uploading}
+        onClick={handleSubmit}
+        className="mt-4 bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+      >
+        {uploading ? 'Mengupload...' : 'Upload Bukti Pembayaran'}
+      </button>
+      <p className="mt-4 text-red-600">Waktu tersisa: {timer} detik</p>
     </div>
   );
-};
-
-export default PembayaranPage;
+}
