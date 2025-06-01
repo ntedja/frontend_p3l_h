@@ -210,3 +210,37 @@ export const submitRatingBarang = async (
     alert('Gagal mengirim rating.');
   }
 };
+
+/**
+ * API: Ambil rating rata‐rata dari seorang penitip (pemilik barang)
+ * Contoh endpoint: GET /penitip/:penitipId/average-rating
+ * Response yang diharapkan:
+ * {
+ *   "success": true,
+ *   "data": { "average": 4.2 }
+ * }
+ */
+export const fetchAverageRatingPenitip = async (
+  penitipId: number
+): Promise<number> => {
+  try {
+    const response = await api.get(`/penitip/${penitipId}/average-rating`);
+    if (response.data.success && response.data.data) {
+      return response.data.data.average as number;
+    }
+    throw new Error('Gagal mengambil rata‐rata rating penitip');
+  } catch (error: any) {
+    console.error('Error fetchAverageRatingPenitip:', error);
+    if (error.response) {
+      throw new Error(
+        error.response.data?.message ||
+        error.response.statusText ||
+        'Terjadi kesalahan server'
+      );
+    } else if (error.request) {
+      throw new Error('Tidak ada respon dari server');
+    } else {
+      throw new Error(error.message || 'Terjadi kesalahan tak terduga');
+    }
+  }
+};
