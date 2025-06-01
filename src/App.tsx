@@ -22,6 +22,7 @@ import RiwayatPesananPage from './pages/RiwayatPesananPage';
 import CheckoutPage from './pages/CheckoutPage';
 import KonfirmasiPesananPage from './pages/KonfirmasiPesananPage';
 import PembayaranPage from './pages/PembayaranPage';
+import CartPage from './pages/CartPage';
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/checkout/:id" element={<CheckoutPage />} />
         <Route path="/konfirmasi-pesanan/:orderId" element={<KonfirmasiPesananPage />} />
         <Route path="/pembayaran/:orderId" element={<PembayaranPage />} />
+        <Route path="/cart" element={<CartPage />} />
       </Routes>
     </BrowserRouter>
   );

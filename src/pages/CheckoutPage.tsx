@@ -64,8 +64,13 @@ function Modal({
 export default function CheckoutPage() {
   const navigate = useNavigate();
 
+  const displayToBackend = {
+    kurir: 'Di Kirim',
+    ambil: 'Ambil Sendiri',
+  };
+
   const { id } = useParams<{ id: string }>();
-  const [deliveryMethod, setDeliveryMethod] = useState<'kurir' | 'ambil'>('kurir');
+  const [deliveryMethodUI, setDeliveryMethodUI] = useState<'kurir' | 'ambil'>('kurir');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showMethodModal, setShowMethodModal] = useState(false);
 
@@ -83,22 +88,23 @@ export default function CheckoutPage() {
   const [usedPoints, setUsedPoints] = useState(0);
 
   const pointValue = 10000;
-  const serviceFee = 2500;
 
   const handleOrder = async () => {
     if (!product) return;
 
-    if (deliveryMethod === 'kurir' && !selectedAlamatId) {
+    if (deliveryMethodUI === 'kurir' && !selectedAlamatId) {
       alert('Silakan pilih alamat pengiriman terlebih dahulu.');
       return;
     }
 
     try {
       const payload = {
-        metode_pengiriman: deliveryMethod,
-        id_alamat_pengiriman: deliveryMethod === 'kurir' ? selectedAlamatId : null,
-        items: [{ id: product.id, qty: 1 }],
+        metode_pengiriman: displayToBackend[deliveryMethodUI],
+        id_alamat_pengiriman:
+          displayToBackend[deliveryMethodUI] === 'Di Kirim' ? selectedAlamatId : null,
+        items: [{ qty: 1 }],
         poin_ditukar: usedPoints,
+        id_barang: product.id,
       };
 
       const token = localStorage.getItem('token');
@@ -170,8 +176,8 @@ export default function CheckoutPage() {
   const pointDiscount = usedPoints * pointValue;
   const productSubtotal = Number(product?.price?.replace(/[^\d]/g, '')) || 0;
   const rawShippingFee = productSubtotal >= 1500000 ? 0 : 100000;
-  const shippingFee = deliveryMethod === 'kurir' ? rawShippingFee : 0;
-  const totalPayment = Math.max(productSubtotal + shippingFee + serviceFee - pointDiscount, 0);
+  const shippingFee = deliveryMethodUI === 'kurir' ? rawShippingFee : 0;
+  const totalPayment = Math.max(productSubtotal + shippingFee - pointDiscount, 0);
   const remainingPoints = userPoints - usedPoints;
   const selectedAddress = addresses.find((addr) => addr.ID_ALAMAT === selectedAlamatId);
 
@@ -185,7 +191,7 @@ export default function CheckoutPage() {
             <p className="font-medium">{profileData.NAMA_PEMBELI || '-'}</p>
             <p>(+62) {profileData.NO_TELP_PEMBELI || '-'}</p>
           </div>
-          {deliveryMethod === 'kurir' && selectedAddress && (
+          {deliveryMethodUI === 'kurir' && selectedAddress && (
             <div className="flex-1 text-sm text-center">
               <p className="font-medium">{selectedAddress.JUDUL || '-'}</p>
               <p>
@@ -193,7 +199,7 @@ export default function CheckoutPage() {
               </p>
             </div>
           )}
-          {deliveryMethod === 'kurir' && (
+          {deliveryMethodUI === 'kurir' && (
             <button
               className="text-sm rounded-md px-3 py-1 border border-[#1E2B32] text-[#1E2B32]"
               onClick={() => setShowAddressModal(true)}
@@ -243,7 +249,7 @@ export default function CheckoutPage() {
           <h2 className="font-semibold">Metode Pengiriman</h2>
           <div className="flex justify-between items-center">
             <div className="text-sm">
-              {deliveryMethod === 'kurir'
+              {deliveryMethodUI === 'kurir'
                 ? 'Pengiriman oleh kurir (Yogyakarta saja)'
                 : 'Ambil langsung ke gudang'}
             </div>
@@ -295,7 +301,6 @@ export default function CheckoutPage() {
           {[
             ['Subtotal Unit Produk', `Rp ${productSubtotal.toLocaleString('id-ID')}`],
             ['Subtotal Pengiriman', `Rp ${shippingFee.toLocaleString('id-ID')}`],
-            ['Biaya Layanan', `Rp ${serviceFee.toLocaleString('id-ID')}`],
             ['Voucher Poin', `Rp ${pointDiscount.toLocaleString('id-ID')}`],
             ['Total Pembayaran', `Rp ${totalPayment.toLocaleString('id-ID')}`],
           ].map(([label, value], idx) => (
@@ -342,8 +347,8 @@ export default function CheckoutPage() {
                 type="radio"
                 name="metode"
                 value="kurir"
-                checked={deliveryMethod === 'kurir'}
-                onChange={() => setDeliveryMethod('kurir')}
+                checked={deliveryMethodUI === 'kurir'}
+                onChange={() => setDeliveryMethodUI('kurir')}
                 className="accent-[#2D4C41]"
               />
               <span>Kurir (Yogyakarta saja)</span>
@@ -353,8 +358,8 @@ export default function CheckoutPage() {
                 type="radio"
                 name="metode"
                 value="ambil"
-                checked={deliveryMethod === 'ambil'}
-                onChange={() => setDeliveryMethod('ambil')}
+                checked={deliveryMethodUI === 'ambil'}
+                onChange={() => setDeliveryMethodUI('ambil')}
                 className="accent-[#2D4C41]"
               />
               <span>Ambil sendiri ke gudang</span>

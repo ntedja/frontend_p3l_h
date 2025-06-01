@@ -94,7 +94,7 @@ export default function Header() {
               <>
                 <ShoppingCart
                   className="w-5 h-5 text-[#48635B] cursor-pointer mr-3"
-                  onClick={() => navigate('/historyrequest')}
+                  onClick={() => navigate('/cart')}
                 />
                 <User
                   className="w-5 h-5 text-[#48635B] cursor-pointer mr-3"

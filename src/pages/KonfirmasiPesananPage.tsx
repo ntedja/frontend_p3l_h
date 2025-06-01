@@ -19,7 +19,7 @@ export default function KonfirmasiPesananPage() {
       </button>
       <button
         className="border border-[#48635B] text-[#48635B] px-6 py-2 rounded"
-        onClick={() => navigate('/riwayat-transaksi')}
+        onClick={() => navigate('/riwayat-pesanan')}
       >
         Lihat Riwayat Transaksi
       </button>

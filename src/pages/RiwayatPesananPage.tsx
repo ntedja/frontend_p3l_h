@@ -3,6 +3,9 @@ import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
+import Header from '../components/Header'; // import Header
+import Footer from '../components/Footer';
+
 // --- API Functions ---
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -28,9 +31,10 @@ interface PesananItem {
 export interface Pesanan {
   id: number;
   kode: string;
-  tanggal: string;
-  status: string;
-  total: number;
+  tanggal?: string;
+  status?: string;
+  total?: number;
+  ongkos_kirim?: number;
   item_count: number;
   alamat_pengiriman?: string;
   metode_pembayaran?: string;
@@ -155,6 +159,14 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
     }
   };
 
+  const truncateString = (str: string, maxLength: number = 15) => {
+    if (!str) return '';
+    if (str.length <= maxLength) return str;
+    const start = str.substring(0, Math.floor(maxLength / 2));
+    const end = str.substring(str.length - Math.floor(maxLength / 2));
+    return `${start}...${end}`;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
@@ -188,21 +200,26 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               <div>
                 <p className="text-sm text-gray-600">Tanggal Pesanan:</p>
                 <p className="font-semibold text-lg text-[#1E2B32]">
-                  {formatDate(pesananDetail.tanggal)}
+                  {pesananDetail.tanggal ? formatDate(pesananDetail.tanggal) : '-'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status:</p>
                 <p
-                  className={`font-semibold text-lg ${getStatusStyle(pesananDetail.status).color}`}
+                  className={`font-semibold text-lg ${
+                    getStatusStyle(pesananDetail.status ?? '').color
+                  }`}
                 >
-                  {pesananDetail.status}
+                  {pesananDetail.status ?? '-'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Harga:</p>
                 <p className="font-semibold text-lg text-[#5B8482]">
-                  Rp {pesananDetail.total.toLocaleString('id-ID')}
+                  Rp{' '}
+                  {typeof pesananDetail.total === 'number' && !isNaN(pesananDetail.total)
+                    ? pesananDetail.total.toLocaleString('id-ID')
+                    : '-'}
                 </p>
               </div>
             </div>
@@ -263,7 +280,9 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   {pesananDetail.bukti_transfer && (
                     <div>
                       <p className="text-sm text-gray-600">Bukti Transfer:</p>
-                      <p className="font-medium text-[#1E2B32]">{pesananDetail.bukti_transfer}</p>
+                      <p className="font-medium text-[#1E2B32]">
+                        {truncateString(pesananDetail.bukti_transfer)}
+                      </p>
                     </div>
                   )}
                   {pesananDetail.status_bukti_transfer && (
@@ -309,11 +328,17 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                       <div>
                         <p className="font-medium text-[#1E2B32]">{item.nama_produk}</p>
                         <p className="text-sm text-gray-600">
-                          {item.jumlah} x Rp {item.harga_satuan.toLocaleString('id-ID')}
+                          {item.jumlah} x Rp{' '}
+                          {typeof item.harga_satuan === 'number'
+                            ? item.harga_satuan.toLocaleString('id-ID')
+                            : '-'}
                         </p>
                       </div>
                       <p className="font-semibold text-[#5B8482]">
-                        Rp {item.subtotal.toLocaleString('id-ID')}
+                        Rp{' '}
+                        {typeof item.subtotal === 'number'
+                          ? item.subtotal.toLocaleString('id-ID')
+                          : '-'}
                       </p>
                     </div>
                   ))}
@@ -332,7 +357,16 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
 };
 
 // Helper function for status styling (moved outside component for reusability)
-const getStatusStyle = (status: string) => {
+const getStatusStyle = (status?: string) => {
+  if (!status) {
+    return {
+      color: 'text-gray-700',
+      bg: 'bg-gray-50',
+      border: 'border-gray-300',
+      icon: null,
+    };
+  }
+
   switch (status.toLowerCase()) {
     case 'selesai':
       return {
@@ -348,7 +382,7 @@ const getStatusStyle = (status: string) => {
         border: 'border-red-300',
         icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
       };
-    default: // For 'Diproses' and other statuses
+    default:
       return {
         color: 'text-yellow-700',
         bg: 'bg-yellow-50',
@@ -400,6 +434,7 @@ export default function RiwayatPesananPage() {
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] font-sans">
+      <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-3xl font-bold mb-8 text-[#1E2B32]">Riwayat Pesanan</h1>
 
@@ -431,15 +466,20 @@ export default function RiwayatPesananPage() {
                       </h3>
                       <p className="text-sm text-gray-600">
                         Tanggal:{' '}
-                        {new Date(p.tanggal).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
+                        {p.tanggal
+                          ? new Date(p.tanggal).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : '-'}
                       </p>
                       <p className="text-sm text-gray-600">Total Item: {p.item_count}</p>
                       <p className="text-sm text-[#1E2B32] font-semibold mt-1">
-                        Total Harga: Rp {p.total.toLocaleString('id-ID')}
+                        Total Harga:{' '}
+                        {typeof p.total === 'number'
+                          ? `Rp ${p.total.toLocaleString('id-ID')}`
+                          : '-'}
                       </p>
                     </div>
                     <div
@@ -469,6 +509,7 @@ export default function RiwayatPesananPage() {
       {showDetailModal && (
         <PesananDetailModal pesananId={selectedPesananId} onClose={handleCloseDetailModal} />
       )}
+      <Footer />
     </div>
   );
 }
