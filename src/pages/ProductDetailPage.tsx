@@ -40,6 +40,26 @@ export default function ProductDetailPage() {
   const [showFormDiskusi, setShowFormDiskusi] = useState(false);
   const [inCart, setInCart] = useState(false);
 
+  async function addCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.post(
+      'http://localhost:8000/api/cart-items',
+      { ID_BARANG: productId, quantity: 1 },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async function removeCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.delete(`http://localhost:8000/api/cart-items/remove/${productId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -78,19 +98,20 @@ export default function ProductDetailPage() {
     fetchDiskusi();
   }, [id]);
 
-  const handleCartToggle = () => {
-    const cart: Product[] = JSON.parse(localStorage.getItem('cart') || '[]');
+  const handleCartToggle = async () => {
+    if (!product) return;
 
-    if (inCart) {
-      const updatedCart = cart.filter((item) => item.id.toString() !== id);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      setInCart(false);
-    } else {
-      if (product) {
-        cart.push(product);
-        localStorage.setItem('cart', JSON.stringify(cart));
+    try {
+      if (inCart) {
+        await removeCartItem(product.id);
+        setInCart(false);
+      } else {
+        await addCartItem(product.id);
         setInCart(true);
       }
+    } catch (err) {
+      console.error('Gagal update cart:', err);
+      alert('Gagal update cart. Pastikan sudah login.');
     }
   };
 
