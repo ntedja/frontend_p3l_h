@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://10.31.248.110:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,11 +21,11 @@ if (token) {
  * Struktur satu item barang di dalam pesanan (hasil mapping).
  */
 export interface PesananItem {
-  id: number;           // ID_BARANG
-  nama_produk: string;  // NAMA_BARANG
-  jumlah: number;       // JUMLAH (default 1 apabila kita pakai dari `barang`)
+  id: number; // ID_BARANG
+  nama_produk: string; // NAMA_BARANG
+  jumlah: number; // JUMLAH (default 1 apabila kita pakai dari `barang`)
   harga_satuan: number; // HARGA_SATUAN (dari raw.barang.harga)
-  subtotal: number;     // JUMLAH * HARGA_SATUAN
+  subtotal: number; // JUMLAH * HARGA_SATUAN
 }
 
 /**
@@ -34,20 +34,20 @@ export interface PesananItem {
 export interface Pesanan {
   id: number;
   kode: string;
-  tanggal: string;               // raw.tanggal (list) atau raw.tanggal_pesan (detail)
-  status_transaksi: string;      // raw.status_transaksi
-  total: number;                 // raw.total (list) atau raw.total_bayar (detail)
-  item_count: number;            // panjang array items
+  tanggal: string; // raw.tanggal (list) atau raw.tanggal_pesan (detail)
+  status_transaksi: string; // raw.status_transaksi
+  total: number; // raw.total (list) atau raw.total_bayar (detail)
+  item_count: number; // panjang array items
   alamat_pengiriman?: string;
   metode_pembayaran?: string;
   bukti_transfer?: string;
-  tanggal_ambil_kirim?: string;     // raw.tgl_ambil_kirim
+  tanggal_ambil_kirim?: string; // raw.tgl_ambil_kirim
   tanggal_lunas_pembelian?: string; // raw.tgl_lunas
   delivery_method?: string;
   poin_didapat?: number;
   poin_potongan?: number;
   status_bukti_transfer?: string;
-  items: PesananItem[];          // hasil mapping raw.detail_transaksi (atau raw.barang jika detail kosong)
+  items: PesananItem[]; // hasil mapping raw.detail_transaksi (atau raw.barang jika detail kosong)
 }
 
 /**
@@ -69,7 +69,7 @@ export const fetchRiwayatPesanan = async (token: string): Promise<Pesanan[]> => 
       return rawList.map((raw) => ({
         id: raw.id,
         kode: raw.kode,
-        tanggal: raw.tanggal,              // di API list memang fieldnya `tanggal`
+        tanggal: raw.tanggal, // di API list memang fieldnya `tanggal`
         status_transaksi: raw.status_transaksi,
         total: raw.total ?? 0,
         item_count: raw.item_count ?? 0,
@@ -91,9 +91,7 @@ export const fetchRiwayatPesanan = async (token: string): Promise<Pesanan[]> => 
     console.error('Error fetchRiwayatPesanan:', error);
     if (error.response) {
       throw new Error(
-        error.response.data?.message ||
-        error.response.statusText ||
-        'Terjadi kesalahan server'
+        error.response.data?.message || error.response.statusText || 'Terjadi kesalahan server',
       );
     } else if (error.request) {
       throw new Error('Tidak ada respon dari server');
@@ -107,10 +105,7 @@ export const fetchRiwayatPesanan = async (token: string): Promise<Pesanan[]> => 
  * API: Ambil detail satu pesanan berdasarkan ID, lalu mapping ke objek Pesanan (termasuk array items).
  * Khususnya: apabila raw.detail_transaksi kosong, tetapi ada raw.barang, kita buat 1 item dari raw.barang.
  */
-export const fetchPesananDetail = async (
-  token: string,
-  id: number
-): Promise<Pesanan> => {
+export const fetchPesananDetail = async (token: string, id: number): Promise<Pesanan> => {
   try {
     const response = await api.get(`/pesanan/${id}`, {
       headers: {
@@ -171,9 +166,7 @@ export const fetchPesananDetail = async (
     console.error(`Error fetchPesananDetail (${id}):`, error);
     if (error.response) {
       throw new Error(
-        error.response.data?.message ||
-        error.response.statusText ||
-        'Terjadi kesalahan server'
+        error.response.data?.message || error.response.statusText || 'Terjadi kesalahan server',
       );
     } else if (error.request) {
       throw new Error('Tidak ada respon dari server');
@@ -187,10 +180,7 @@ export const fetchPesananDetail = async (
  * Kirim rating untuk satu barang (per‐barang).
  * Endpoint: POST /api/barang/{id}/rating  (middleware auth:sanctum)
  */
-export const submitRatingBarang = async (
-  barangId: number,
-  rating: number
-) => {
+export const submitRatingBarang = async (barangId: number, rating: number) => {
   try {
     const tokenLocal = localStorage.getItem('token');
     if (!tokenLocal) {
@@ -202,7 +192,7 @@ export const submitRatingBarang = async (
       { rating },
       {
         headers: { Authorization: `Bearer ${tokenLocal}` },
-      }
+      },
     );
     alert(`Rating ${rating} bintang untuk barang ID ${barangId} berhasil dikirim!`);
   } catch (err) {
@@ -220,9 +210,7 @@ export const submitRatingBarang = async (
  *   "data": { "average": 4.2 }
  * }
  */
-export const fetchAverageRatingPenitip = async (
-  penitipId: number
-): Promise<number> => {
+export const fetchAverageRatingPenitip = async (penitipId: number): Promise<number> => {
   try {
     const response = await api.get(`/penitip/${penitipId}/average-rating`);
     if (response.data.success && response.data.data) {
@@ -233,9 +221,7 @@ export const fetchAverageRatingPenitip = async (
     console.error('Error fetchAverageRatingPenitip:', error);
     if (error.response) {
       throw new Error(
-        error.response.data?.message ||
-        error.response.statusText ||
-        'Terjadi kesalahan server'
+        error.response.data?.message || error.response.statusText || 'Terjadi kesalahan server',
       );
     } else if (error.request) {
       throw new Error('Tidak ada respon dari server');

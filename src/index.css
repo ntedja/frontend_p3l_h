@@ -55,3 +55,9 @@ a:hover {
     color: #3C686A;
   }
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%);
+}
+
+

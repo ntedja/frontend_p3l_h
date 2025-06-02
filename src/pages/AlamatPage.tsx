@@ -46,11 +46,13 @@ interface Village {
 export default function AlamatPage() {
   // Address related states
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [filteredAddresses, setFilteredAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Profile related state
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -89,7 +91,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://localhost:8000/api/pembeli/me', {
+        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -127,10 +129,11 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(response.data.data);
+        setFilteredAddresses(response.data.data); // Initialize filtered addresses
       } catch (error) {
         console.error('Failed to fetch addresses:', error);
         setError('Failed to load addresses');
@@ -142,11 +145,29 @@ export default function AlamatPage() {
     fetchAddresses();
   }, []);
 
+  // Search functionality
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredAddresses(addresses);
+    } else {
+      const filtered = addresses.filter(
+        (address) =>
+          address.JUDUL.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          address.NAMA_JALAN.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          address.PROVINSI.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+          address.KABUPATEN.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+          address.KECAMATAN.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+          address.DESA_KELURAHAN.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+      setFilteredAddresses(filtered);
+    }
+  }, [searchTerm, addresses]);
+
   // Fetch provinces on mount (for add form)
   useEffect(() => {
     if (showAddForm && provinces.length === 0) {
       axios
-        .get('http://localhost:8000/api/provinsi')
+        .get('http://10.31.248.110:8000/api/provinsi')
         .then((response) => setProvinces(response.data))
         .catch((error) => console.error('Failed to load provinces:', error));
     }
@@ -165,7 +186,7 @@ export default function AlamatPage() {
 
     if (provinceId) {
       axios
-        .get(`http://localhost:8000/api/kabupaten/${provinceId}`)
+        .get(`http://10.31.248.110:8000/api/kabupaten/${provinceId}`)
         .then((response) => setRegencies(response.data))
         .catch((error) => console.error('Failed to load regencies:', error));
     } else {
@@ -184,7 +205,7 @@ export default function AlamatPage() {
 
     if (regencyId) {
       axios
-        .get(`http://localhost:8000/api/kecamatan/${regencyId}`)
+        .get(`http://10.31.248.110:8000/api/kecamatan/${regencyId}`)
         .then((response) => setDistricts(response.data))
         .catch((error) => console.error('Failed to load districts:', error));
     } else {
@@ -198,7 +219,7 @@ export default function AlamatPage() {
 
     if (districtId) {
       axios
-        .get(`http://localhost:8000/api/desa/${districtId}`)
+        .get(`http://10.31.248.110:8000/api/desa/${districtId}`)
         .then((response) => setVillages(response.data))
         .catch((error) => console.error('Failed to load villages:', error));
     } else {
@@ -224,16 +245,20 @@ export default function AlamatPage() {
 
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
-        const response = await axios.delete(`http://localhost:8000/api/alamat/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+        const response = await axios.delete(
+          `http://10.31.248.110:8000/api/pembeli/me/alamat/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
 
         if (response.data.success) {
-          // Update local state instead of refetching
-          setAddresses(addresses.filter((address) => address.ID_ALAMAT !== id));
+          const updatedAddresses = addresses.filter((address) => address.ID_ALAMAT !== id);
+          setAddresses(updatedAddresses);
+          setFilteredAddresses(updatedAddresses);
         } else {
           setError(response.data.message || 'Failed to delete address');
         }
@@ -260,13 +285,13 @@ export default function AlamatPage() {
 
     // Load location dropdowns
     axios
-      .get(`http://localhost:8000/api/kabupaten/${address.PROVINSI}`)
+      .get(`http://10.31.248.110:8000/api/kabupaten/${address.PROVINSI}`)
       .then((res) => setRegencies(res.data));
     axios
-      .get(`http://localhost:8000/api/kecamatan/${address.KABUPATEN}`)
+      .get(`http://10.31.248.110:8000/api/kecamatan/${address.KABUPATEN}`)
       .then((res) => setDistricts(res.data));
     axios
-      .get(`http://localhost:8000/api/desa/${address.KECAMATAN}`)
+      .get(`http://10.31.248.110:8000/api/desa/${address.KECAMATAN}`)
       .then((res) => setVillages(res.data));
   };
 
@@ -281,7 +306,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/alamat/${editingAddress.ID_ALAMAT}`,
+        `http://10.31.248.110:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -300,10 +325,11 @@ export default function AlamatPage() {
 
       if (response.data.success) {
         // Refresh the addresses list
-        const updatedResponse = await axios.get('http://localhost:8000/api/alamat', {
+        const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(updatedResponse.data.data);
+        setFilteredAddresses(updatedResponse.data.data);
         setShowEditForm(false);
         setEditingAddress(null);
         setError('');
@@ -327,7 +353,7 @@ export default function AlamatPage() {
 
     try {
       await axios.post(
-        'http://localhost:8000/api/pembeli/me/alamat',
+        'http://10.31.248.110:8000/api/pembeli/me/alamat',
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -340,11 +366,12 @@ export default function AlamatPage() {
       );
 
       // Refresh addresses list
-      const updatedResponse = await axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+      const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setAddresses(updatedResponse.data.data);
+      setFilteredAddresses(updatedResponse.data.data);
       setShowAddForm(false);
       setAddressFormData({
         JUDUL: '',
@@ -441,7 +468,16 @@ export default function AlamatPage() {
 
           {/* Main Content */}
           <section className="w-full md:w-3/4 space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              <div className="w-full max-w-md">
+                <input
+                  type="text"
+                  placeholder="Cari alamat..."
+                  className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               <button
                 onClick={() => {
                   setShowAddForm(true);
@@ -456,10 +492,14 @@ export default function AlamatPage() {
 
             {/* Address List */}
             <div className="space-y-4">
-              {addresses.length === 0 ? (
-                <p>Anda belum memiliki alamat tersimpan</p>
+              {filteredAddresses.length === 0 ? (
+                <p>
+                  {searchTerm
+                    ? 'Tidak ditemukan alamat yang sesuai'
+                    : 'Anda belum memiliki alamat tersimpan'}
+                </p>
               ) : (
-                addresses.map((address) => (
+                filteredAddresses.map((address) => (
                   <div key={address.ID_ALAMAT} className="border rounded-lg p-4 relative">
                     <h3 className="font-semibold">{address.JUDUL}</h3>
                     <p>{address.NAMA_JALAN}</p>
@@ -472,7 +512,7 @@ export default function AlamatPage() {
                     <div className="mt-4 flex justify-end gap-2">
                       <button
                         onClick={() => handleEditClick(address)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                        className="bg-[#48635B] text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
                       >
                         Edit
                       </button>
@@ -507,7 +547,7 @@ export default function AlamatPage() {
                       value={addressFormData.JUDUL}
                       onChange={handleAddressInputChange}
                       required
-                      className="w-full p-2 border rounded-md border-[#CCC]"
+                      className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       placeholder="Contoh: Rumah, Kantor, Kos"
                     />
                   </div>
@@ -520,7 +560,7 @@ export default function AlamatPage() {
                       value={addressFormData.NAMA_JALAN}
                       onChange={handleAddressInputChange}
                       required
-                      className="w-full p-2 border rounded-md border-[#CCC]"
+                      className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       placeholder="Nama jalan, nomor rumah, gedung"
                     />
                   </div>
@@ -532,7 +572,7 @@ export default function AlamatPage() {
                         value={addressFormData.selectedProvince}
                         onChange={handleProvinceChange}
                         required
-                        className="w-full p-2 border rounded-md border-[#CCC]"
+                        className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       >
                         <option value="">Pilih Provinsi</option>
                         {provinces.map((province) => (
@@ -550,7 +590,7 @@ export default function AlamatPage() {
                         onChange={handleRegencyChange}
                         required
                         disabled={!addressFormData.selectedProvince}
-                        className="w-full p-2 border rounded-md border-[#CCC]"
+                        className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       >
                         <option value="">Pilih Kabupaten/Kota</option>
                         {regencies.map((regency) => (
@@ -568,7 +608,7 @@ export default function AlamatPage() {
                         onChange={handleDistrictChange}
                         required
                         disabled={!addressFormData.selectedRegency}
-                        className="w-full p-2 border rounded-md border-[#CCC]"
+                        className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       >
                         <option value="">Pilih Kecamatan</option>
                         {districts.map((district) => (
@@ -586,7 +626,7 @@ export default function AlamatPage() {
                         onChange={handleVillageChange}
                         required
                         disabled={!addressFormData.selectedDistrict}
-                        className="w-full p-2 border rounded-md border-[#CCC]"
+                        className="w-full p-2 border rounded-md border-[#CCC] bg-[#ffff]"
                       >
                         <option value="">Pilih Desa/Kelurahan</option>
                         {villages.map((village) => (

@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Router } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPageOrganisasi from './pages/LoginPageOrganisasi';
+import LoginPagePenitip from './pages/LoginPagePenitip';
 import RegisterPageOrganisasi from './pages/RegisterPageOrganisasi';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ScrollToTop from './components/ScrollToTop';
@@ -11,6 +12,7 @@ import MitraReuseMartPage from './pages/MitraReuseMartPage';
 import MulaiJualanPage from './pages/MulaiJualanPage';
 import ReuseMartCarePage from './pages/ReuseMartCarePage';
 import ProfilePage from './pages/ProfilePage';
+import ProfilePageLive from './pages/ProfilePageLive';
 import AlamatPage from './pages/AlamatPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -18,6 +20,9 @@ import KatalogRequest from './pages/KatalogRequest';
 import HistoryRequest from './pages/HistoryRequest';
 import RiwayatPesananPage from './pages/RiwayatPesananPage';
 import CheckoutPage from './pages/CheckoutPage';
+import KonfirmasiPesananPage from './pages/KonfirmasiPesananPage';
+import PembayaranPage from './pages/PembayaranPage';
+import CartPage from './pages/CartPage';
 
 export default function App() {
   return (
@@ -33,15 +38,20 @@ export default function App() {
         <Route path="/mulai-jualan" element={<MulaiJualanPage />} />
         <Route path="/reusemart-care" element={<ReuseMartCarePage />} />
         <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />
+        <Route path="/loginpenitip" element={<LoginPagePenitip />} />
         <Route path="/registerorganisasi" element={<RegisterPageOrganisasi />} />
         <Route path="/katalogrequest" element={<KatalogRequest />} />
         <Route path="/historyrequest" element={<HistoryRequest />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profilepagelive" element={<ProfilePageLive />} />
         <Route path="/alamat" element={<AlamatPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/:id" element={<CheckoutPage />} />
+        <Route path="/konfirmasi-pesanan/:orderId" element={<KonfirmasiPesananPage />} />
+        <Route path="/pembayaran/:orderId" element={<PembayaranPage />} />
+        <Route path="/cart" element={<CartPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -10,7 +10,7 @@ type Product = {
   name: string;
   price: string;
   category: string;
-  status: string;           // "Tersedia" atau "Tidak Tersedia"
+  status: string; // "Tersedia" atau "Tidak Tersedia"
   image: string;
   images: string[];
   garansi: string;
@@ -18,8 +18,8 @@ type Product = {
   deskripsi: string;
   penitip_name: string;
   penitip_since: string;
-  penitip_rating: number;   // rata‐rata rating semua barang Terjual milik penitip
-  rating: number;           // rating barang saat ini
+  penitip_rating: number; // rata‐rata rating semua barang Terjual milik penitip
+  rating: number; // rating barang saat ini
 };
 
 interface Diskusi {
@@ -43,10 +43,30 @@ export default function ProductDetailPage() {
   const [showFormDiskusi, setShowFormDiskusi] = useState(false);
   const [inCart, setInCart] = useState(false);
 
+  async function addCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.post(
+      'http://10.31.248.110:8000/api/cart-items',
+      { ID_BARANG: productId, quantity: 1 },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async function removeCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.delete(`http://10.31.248.110:8000/api/cart-items/remove/${productId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/produk/${id}`);
+        const res = await axios.get(`http://10.31.248.110:8000/api/produk/${id}`);
         const raw: any = res.data;
 
         const mapped: Product = {
@@ -75,7 +95,7 @@ export default function ProductDetailPage() {
 
     const fetchDiskusi = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/produk/${id}/diskusi`);
+        const res = await axios.get(`http://10.31.248.110:8000/api/produk/${id}/diskusi`);
         const dataArr = Array.isArray(res.data) ? res.data : res.data.data;
         const diskusiData: Diskusi[] = dataArr.map((d: any) => ({
           id: d.ID_DISKUSI,
@@ -99,16 +119,20 @@ export default function ProductDetailPage() {
     fetchDiskusi();
   }, [id]);
 
-  const handleCartToggle = () => {
-    const cart: Product[] = JSON.parse(localStorage.getItem('cart') || '[]');
-    if (inCart) {
-      const updatedCart = cart.filter((item) => item.id.toString() !== id);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      setInCart(false);
-    } else if (product) {
-      cart.push(product);
-      localStorage.setItem('cart', JSON.stringify(cart));
-      setInCart(true);
+  const handleCartToggle = async () => {
+    if (!product) return;
+
+    try {
+      if (inCart) {
+        await removeCartItem(product.id);
+        setInCart(false);
+      } else {
+        await addCartItem(product.id);
+        setInCart(true);
+      }
+    } catch (err) {
+      console.error('Gagal update cart:', err);
+      alert('Gagal update cart. Pastikan sudah login.');
     }
   };
 
@@ -120,14 +144,16 @@ export default function ProductDetailPage() {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await axios.post(
-        `http://localhost:8000/api/produk/${id}/diskusi`,
+        `http://10.31.248.110:8000/api/produk/${id}/diskusi`,
         {
           PERTANYAAN: newDiskusi,
           ID_PEMBELI: user.ID_PEMBELI,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
       const newItem = res.data.data;
       setDiskusi((prev) => [
@@ -200,8 +226,7 @@ export default function ProductDetailPage() {
             <div className="whitespace-pre-line">
               {showMore
                 ? product.deskripsi
-                : product.deskripsi.slice(0, 100) +
-                  (product.deskripsi.length > 100 ? '...' : '')}
+                : product.deskripsi.slice(0, 100) + (product.deskripsi.length > 100 ? '...' : '')}
             </div>
             {product.deskripsi.length > 100 && (
               <button
@@ -217,9 +242,7 @@ export default function ProductDetailPage() {
             {/* Info Penitip + rata‐rata rating di bawah nama */}
             <div className="flex items-start gap-4 pt-4">
               <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  product.penitip_name
-                )}`}
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(product.penitip_name)}`}
                 alt={product.penitip_name}
                 className="w-10 h-10 rounded-full"
               />
@@ -280,13 +303,15 @@ export default function ProductDetailPage() {
 
             <button
               className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate(`/checkout/${product.id}`)}
             >
               Beli Sekarang
             </button>
             <button
               className={`w-full py-2 rounded border mb-6 ${
-                inCart ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]' : 'border-[#48635B] text-[#2D4C41]'
+                inCart
+                  ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]'
+                  : 'border-[#48635B] text-[#2D4C41]'
               }`}
               onClick={handleCartToggle}
             >
@@ -316,7 +341,10 @@ export default function ProductDetailPage() {
                 )}
               </div>
               {showFormDiskusi && (
-                <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                <form
+                  onSubmit={handleSubmitDiskusi}
+                  className="flex flex-col md:flex-row gap-3 mt-4"
+                >
                   <input
                     type="text"
                     value={newDiskusi}
@@ -336,10 +364,15 @@ export default function ProductDetailPage() {
           ) : (
             <div className="space-y-4 mb-6">
               {diskusi.map((d) => (
-                <div key={d.id} className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3">
+                <div
+                  key={d.id}
+                  className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3"
+                >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
-                    <p className="text-xs text-gray-500">{new Date(d.created_at).toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(d.created_at).toLocaleString()}
+                    </p>
                   </div>
                   <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
 
@@ -357,15 +390,15 @@ export default function ProductDetailPage() {
                   type="text"
                   value={newDiskusi}
                   onChange={(e) => setNewDiskusi(e.target.value)}
-                    placeholder="Tulis pertanyaanmu di sini..."
-                    className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
-                  >
-                    Kirim
-                  </button>
+                  placeholder="Tulis pertanyaanmu di sini..."
+                  className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                />
+                <button
+                  type="submit"
+                  className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                >
+                  Kirim
+                </button>
               </form>
             </div>
           )}

@@ -1,43 +1,69 @@
 import { useEffect, useState } from 'react';
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  XIcon,
-  StarIcon,
-} from 'lucide-react';
+import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon, StarIcon } from 'lucide-react';
+
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 import type { Pesanan, PesananItem } from '../api/apiRiwayatPembelian';
-import {
-  fetchRiwayatPesanan,
-  fetchPesananDetail,
-  submitRatingBarang,
-} from '../api/apiRiwayatPembelian';
+import { submitRatingBarang } from '../api/apiRiwayatPembelian';
 
-// Supaya kita bisa memanggil fetchPesananDetail di console (opsional)
-;(window as any).fetchPesananDetail = fetchPesananDetail;
+// Supaya bisa akses submitRatingBarang di console (opsional)
+(window as any).submitRatingBarang = submitRatingBarang;
 
 export const getToken = (): string | null => {
   return localStorage.getItem('token');
 };
 
-// === Komponen PesananDetailModal ===
+// Helper style status pesanan
+const getStatusStyle = (status?: string) => {
+  if (!status) {
+    return {
+      color: 'text-gray-700',
+      bg: 'bg-gray-50',
+      border: 'border-gray-300',
+      icon: null,
+    };
+  }
+
+  switch (status.toLowerCase()) {
+    case 'selesai':
+      return {
+        color: 'text-green-700',
+        bg: 'bg-green-50',
+        border: 'border-green-300',
+        icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
+      };
+    case 'dibatalkan':
+      return {
+        color: 'text-red-700',
+        bg: 'bg-red-50',
+        border: 'border-red-300',
+        icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
+      };
+    default:
+      return {
+        color: 'text-yellow-700',
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-300',
+        icon: <ClockIcon className="w-5 h-5 text-yellow-600" />,
+      };
+  }
+};
+
+// --- PesananDetailModal dengan fetch lokal ---
 interface PesananDetailModalProps {
   pesananId: number | null;
   onClose: () => void;
 }
 
-const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
-  pesananId,
-  onClose,
-}) => {
+const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onClose }) => {
   const [pesananDetail, setPesananDetail] = useState<Pesanan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // **Tambahkan state untuk menyimpan rating tiap item (item.id → rating)**
   const [ratings, setRatings] = useState<Record<number, number>>({});
 
+  // Fetch pesanan detail secara lokal (kode kedua)
   useEffect(() => {
     if (pesananId === null) {
       setPesananDetail(null);
@@ -56,12 +82,62 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
           setLoading(false);
           return;
         }
-        const data = await fetchPesananDetail(token, pesananId);
-        setPesananDetail(data);
+        // Panggil fetchPesananDetail lokal dari kode kedua
+        const response = await fetch(`http://10.31.248.110:8000/api/pesanan/${pesananId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        });
+        const json = await response.json();
+        if (!json.success) throw new Error(json.message || 'Gagal mengambil detail pesanan');
+        const raw = json.data;
 
-        // Inisialisasi ratings kosong untuk setiap item.id
+        // Mapping data sesuai kode lokal
+        let items: PesananItem[] = [];
+        if (Array.isArray(raw.detail_transaksi) && raw.detail_transaksi.length > 0) {
+          items = raw.detail_transaksi.map((detail: any) => ({
+            id: detail.ID_BARANG,
+            nama_produk: detail.barang?.NAMA_BARANG || '-',
+            jumlah: detail.JUMLAH,
+            harga_satuan: detail.HARGA_SATUAN,
+            subtotal: detail.JUMLAH * detail.HARGA_SATUAN,
+          }));
+        } else if (raw.barang) {
+          items = [
+            {
+              id: raw.barang.id,
+              nama_produk: raw.barang.nama,
+              jumlah: 1,
+              harga_satuan: raw.barang.harga,
+              subtotal: raw.barang.harga,
+            },
+          ];
+        }
+
+        const mappedPesanan: Pesanan = {
+          id: raw.id,
+          kode: raw.kode,
+          tanggal: raw.tanggal_pesan,
+          status_transaksi: raw.status_transaksi,
+          total: raw.total_bayar,
+          item_count: items.length,
+          alamat_pengiriman: raw.alamat_pengiriman ?? undefined,
+          metode_pembayaran: raw.metode_pembayaran ?? undefined,
+          bukti_transfer: raw.bukti_transfer ?? undefined,
+          tanggal_ambil_kirim: raw.tgl_ambil_kirim ?? undefined,
+          tanggal_lunas_pembelian: raw.tgl_lunas ?? undefined,
+          delivery_method: raw.delivery_method ?? undefined,
+          poin_didapat: raw.poin_didapat ?? undefined,
+          poin_potongan: raw.poin_potongan ?? undefined,
+          status_bukti_transfer: raw.status_bukti_transfer ?? undefined,
+          items,
+        };
+
+        setPesananDetail(mappedPesanan);
+
         const initialRatings: Record<number, number> = {};
-        data.items.forEach((item) => {
+        items.forEach((item) => {
           initialRatings[item.id] = 0;
         });
         setRatings(initialRatings);
@@ -90,10 +166,14 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
     }
   };
 
-  /**
-   * Fungsi untuk merender satu bintang: jika `filled=true` maka beri atribut `fill="currentColor"`
-   * sehingga ikon StarIcon akan tampil filled. Jika `filled=false`, tampilkan outline saja.
-   */
+  const truncateString = (str: string, maxLength = 15) => {
+    if (!str) return '';
+    if (str.length <= maxLength) return str;
+    const start = str.substring(0, Math.floor(maxLength / 2));
+    const end = str.substring(str.length - Math.floor(maxLength / 2));
+    return `${start}...${end}`;
+  };
+
   const renderStar = (filled: boolean) => {
     return filled ? (
       <StarIcon className="w-5 h-5 text-yellow-500" fill="currentColor" />
@@ -113,9 +193,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
           <XIcon className="w-6 h-6" />
         </button>
 
-        <h2 className="text-2xl font-bold text-[#1E2B32] mb-6 border-b pb-3">
-          Detail Pesanan
-        </h2>
+        <h2 className="text-2xl font-bold text-[#1E2B32] mb-6 border-b pb-3">Detail Pesanan</h2>
 
         {loading ? (
           <div className="text-center text-lg font-medium text-[#2D4C41] py-12">
@@ -127,13 +205,11 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
           </div>
         ) : pesananDetail ? (
           <div className="space-y-6">
-            {/* --- Informasi Utama Pesanan --- */}
+            {/* Informasi Utama */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Kode Pesanan:</p>
-                <p className="font-semibold text-lg text-[#1E2B32]">
-                  #{pesananDetail.kode}
-                </p>
+                <p className="font-semibold text-lg text-[#1E2B32]">#{pesananDetail.kode}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Tanggal Pesanan:</p>
@@ -145,21 +221,24 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                 <p className="text-sm text-gray-600">Status:</p>
                 <p
                   className={`font-semibold text-lg ${
-                    getStatusStyle(pesananDetail.status_transaksi).color
+                    getStatusStyle(pesananDetail.status_transaksi ?? '').color
                   }`}
                 >
-                  {pesananDetail.status_transaksi}
+                  {pesananDetail.status_transaksi ?? '-'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Harga:</p>
                 <p className="font-semibold text-lg text-[#5B8482]">
-                  Rp {pesananDetail.total.toLocaleString('id-ID')}
+                  Rp{' '}
+                  {typeof pesananDetail.total === 'number' && !isNaN(pesananDetail.total)
+                    ? pesananDetail.total.toLocaleString('id-ID')
+                    : '-'}
                 </p>
               </div>
             </div>
 
-            {/* --- Informasi Pengiriman & Pembayaran --- */}
+            {/* Pengiriman & Pembayaran */}
             {(pesananDetail.alamat_pengiriman ||
               pesananDetail.metode_pembayaran ||
               pesananDetail.delivery_method ||
@@ -188,9 +267,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                   {pesananDetail.delivery_method && (
                     <div>
                       <p className="text-sm text-gray-600">Metode Pengiriman:</p>
-                      <p className="font-medium text-[#1E2B32]">
-                        {pesananDetail.delivery_method}
-                      </p>
+                      <p className="font-medium text-[#1E2B32]">{pesananDetail.delivery_method}</p>
                     </div>
                   )}
                   {pesananDetail.tanggal_ambil_kirim && (
@@ -205,7 +282,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
               </div>
             )}
 
-            {/* --- Status Pembayaran & Poin --- */}
+            {/* Status Pembayaran & Poin */}
             {(pesananDetail.bukti_transfer ||
               pesananDetail.status_bukti_transfer ||
               pesananDetail.tanggal_lunas_pembelian ||
@@ -220,15 +297,13 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                     <div>
                       <p className="text-sm text-gray-600">Bukti Transfer:</p>
                       <p className="font-medium text-[#1E2B32]">
-                        {pesananDetail.bukti_transfer}
+                        {truncateString(pesananDetail.bukti_transfer)}
                       </p>
                     </div>
                   )}
                   {pesananDetail.status_bukti_transfer && (
                     <div>
-                      <p className="text-sm text-gray-600">
-                        Status Bukti Transfer:
-                      </p>
+                      <p className="text-sm text-gray-600">Status Bukti Transfer:</p>
                       <p className="font-medium text-[#1E2B32]">
                         {pesananDetail.status_bukti_transfer}
                       </p>
@@ -236,9 +311,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                   )}
                   {pesananDetail.tanggal_lunas_pembelian && (
                     <div>
-                      <p className="text-sm text-gray-600">
-                        Tanggal Lunas Pembelian:
-                      </p>
+                      <p className="text-sm text-gray-600">Tanggal Lunas Pembelian:</p>
                       <p className="font-medium text-[#1E2B32]">
                         {formatDate(pesananDetail.tanggal_lunas_pembelian)}
                       </p>
@@ -247,32 +320,25 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                   {pesananDetail.poin_didapat !== undefined && (
                     <div>
                       <p className="text-sm text-gray-600">Poin Didapat:</p>
-                      <p className="font-medium text-[#1E2B32]">
-                        {pesananDetail.poin_didapat}
-                      </p>
+                      <p className="font-medium text-[#1E2B32]">{pesananDetail.poin_didapat}</p>
                     </div>
                   )}
                   {pesananDetail.poin_potongan !== undefined && (
                     <div>
                       <p className="text-sm text-gray-600">Poin Potongan:</p>
-                      <p className="font-medium text-[#1E2B32]">
-                        {pesananDetail.poin_potongan}
-                      </p>
+                      <p className="font-medium text-[#1E2B32]">{pesananDetail.poin_potongan}</p>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* --- Daftar Item Pesanan + Rating --- */}
-            {pesananDetail.items.length > 0 ? (
+            {/* Daftar Item + Rating */}
+            {pesananDetail.items && pesananDetail.items.length > 0 ? (
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">
-                  Item Pesanan
-                </h3>
+                <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">Item Pesanan</h3>
                 <div className="space-y-4">
                   {pesananDetail.items.map((item: PesananItem) => {
-                    // Ambil rating yang sudah disimpan di state (jika belum ada, default = 0)
                     const currentRating = ratings[item.id] || 0;
 
                     return (
@@ -281,12 +347,9 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                         className="flex justify-between items-start bg-gray-50 p-4 rounded-md"
                       >
                         <div>
-                          <p className="font-medium text-[#1E2B32]">
-                            {item.nama_produk}
-                          </p>
+                          <p className="font-medium text-[#1E2B32]">{item.nama_produk}</p>
                           <p className="text-sm text-gray-600">
-                            {item.jumlah} x Rp{' '}
-                            {item.harga_satuan.toLocaleString('id-ID')}
+                            {item.jumlah} x Rp {item.harga_satuan.toLocaleString('id-ID')}
                           </p>
                         </div>
 
@@ -295,18 +358,15 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
                             Rp {item.subtotal.toLocaleString('id-ID')}
                           </p>
 
-                          {/* Tombol bintang untuk rating */}
+                          {/* Tombol rating bintang */}
                           <div className="flex items-center space-x-1">
                             {[1, 2, 3, 4, 5].map((star) => {
-                              // Jika star <= currentRating → tampilkan “filled”, else outline
                               const filled = star <= currentRating;
                               return (
                                 <button
                                   key={star}
                                   onClick={async () => {
-                                    // 1) Submit ke server
                                     await submitRatingBarang(item.id, star);
-                                    // 2) Save ke state lokal agar bintang terisi
                                     setRatings((prev) => ({
                                       ...prev,
                                       [item.id]: star,
@@ -328,9 +388,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
               </div>
             ) : (
               <div className="border-t pt-4">
-                <p className="text-center text-gray-600">
-                  Tidak ada barang untuk dinilai.
-                </p>
+                <p className="text-center text-gray-600">Tidak ada barang untuk dinilai.</p>
               </div>
             )}
           </div>
@@ -344,34 +402,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
   );
 };
 
-/** Style helper untuk status pesanan */
-const getStatusStyle = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'selesai':
-      return {
-        color: 'text-green-700',
-        bg: 'bg-green-50',
-        border: 'border-green-300',
-        icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
-      };
-    case 'dibatalkan':
-      return {
-        color: 'text-red-700',
-        bg: 'bg-red-50',
-        border: 'border-red-300',
-        icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
-      };
-    default:
-      return {
-        color: 'text-yellow-700',
-        bg: 'bg-yellow-50',
-        border: 'border-yellow-300',
-        icon: <ClockIcon className="w-5 h-5 text-yellow-600" />,
-      };
-  }
-};
-
-// === Komponen Utama: RiwayatPesananPage ===
+// --- Komponen Utama: RiwayatPesananPage ---
 export default function RiwayatPesananPage() {
   const [pesanan, setPesanan] = useState<Pesanan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -389,8 +420,16 @@ export default function RiwayatPesananPage() {
           setLoading(false);
           return;
         }
-        const data = await fetchRiwayatPesanan(token);
-        setPesanan(data);
+        // Fetch riwayat pesanan secara lokal
+        const response = await fetch(`http://10.31.248.110:8000/api/pesanan`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        });
+        const json = await response.json();
+        if (!json.success) throw new Error(json.message || 'Gagal mengambil data riwayat pesanan');
+        setPesanan(json.data);
       } catch (err: any) {
         setError(err.message || 'Terjadi kesalahan saat memuat data');
       } finally {
@@ -413,10 +452,9 @@ export default function RiwayatPesananPage() {
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32] font-sans">
+      <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <h1 className="text-3xl font-bold mb-8 text-[#1E2B32]">
-          Riwayat Pesanan
-        </h1>
+        <h1 className="text-3xl font-bold mb-8 text-[#1E2B32]">Riwayat Pesanan</h1>
 
         {loading ? (
           <div className="text-center text-lg font-medium text-[#2D4C41] py-24">
@@ -446,15 +484,20 @@ export default function RiwayatPesananPage() {
                       </h3>
                       <p className="text-sm text-gray-600">
                         Tanggal:{' '}
-                        {new Date(p.tanggal).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
+                        {p.tanggal
+                          ? new Date(p.tanggal).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : '-'}
                       </p>
                       <p className="text-sm text-gray-600">Total Item: {p.item_count}</p>
                       <p className="text-sm text-[#1E2B32] font-semibold mt-1">
-                        Total Harga: Rp {p.total.toLocaleString('id-ID')}
+                        Total Harga:{' '}
+                        {typeof p.total === 'number'
+                          ? `Rp ${p.total.toLocaleString('id-ID')}`
+                          : '-'}
                       </p>
                     </div>
                     <div
@@ -481,11 +524,9 @@ export default function RiwayatPesananPage() {
       </main>
 
       {showDetailModal && (
-        <PesananDetailModal
-          pesananId={selectedPesananId}
-          onClose={handleCloseDetailModal}
-        />
+        <PesananDetailModal pesananId={selectedPesananId} onClose={handleCloseDetailModal} />
       )}
+      <Footer />
     </div>
   );
 }

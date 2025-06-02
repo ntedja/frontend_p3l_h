@@ -25,6 +25,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showPointModal, setShowPointModal] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -146,11 +147,49 @@ export default function ProfilePage() {
                   alt="Avatar"
                   className="w-20 h-20 rounded-full object-cover mb-2"
                 />
-                <h3 className="text-lg font-semibold">{formData.NAMA_PEMBELI}</h3>
+                <Link
+                  to="#"
+                  className="text-lg font-semibold hover:underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPointModal(true);
+                  }}
+                >
+                  {formData.NAMA_PEMBELI}
+                </Link>
+                {showPointModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                      <img
+                        src={defaultAvatar}
+                        alt="Avatar"
+                        className="w-20 h-20 rounded-full object-cover mb-2 justify-center mx-auto"
+                      />
+                      <h2 className="text-lg font-semibold mb-4 text-center text-[#2D4C41]">
+                        {formData.NAMA_PEMBELI}
+                      </h2>
+                      <p className="mb-6 text-center text-[#48635B]">
+                        Kamu memiliki{' '}
+                        <span className="font-bold">
+                          {formData.POINT_LOYALITAS_PEMBELI.toLocaleString('id-ID')}
+                        </span>{' '}
+                        poin loyalitas.
+                      </p>
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setShowPointModal(false)}
+                          className="bg-[#48635B] text-white px-5 py-2 rounded hover:bg-[#3a5a3e]"
+                        >
+                          Baik, Terima Kasih 😘
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-[#F9F9F9] p-4 rounded-lg mb-6 w-full text-center">
-                <p className="text-sm text-gray-600 mt-4">Poin</p>
+                <p className="text-sm text-gray-600">Poin</p>
                 <p className="text-lg font-semibold text-[#1E2B32]">
                   {formData.POINT_LOYALITAS_PEMBELI.toLocaleString('id-ID')}
                 </p>
