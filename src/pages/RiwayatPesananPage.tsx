@@ -83,7 +83,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           return;
         }
         // Panggil fetchPesananDetail lokal dari kode kedua
-        const response = await fetch(`http://localhost:8000/api/pesanan/${pesananId}`, {
+        const response = await fetch(`http://10.31.248.110:8000/api/pesanan/${pesananId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -421,7 +421,7 @@ export default function RiwayatPesananPage() {
           return;
         }
         // Fetch riwayat pesanan secara lokal
-        const response = await fetch(`http://localhost:8000/api/pesanan`, {
+        const response = await fetch(`http://10.31.248.110:8000/api/pesanan`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',

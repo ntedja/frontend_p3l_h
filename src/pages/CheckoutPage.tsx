@@ -113,7 +113,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const response = await axios.post('http://localhost:8000/api/checkout', payload, {
+      const response = await axios.post('http://10.31.248.110:8000/api/checkout', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -146,13 +146,13 @@ export default function CheckoutPage() {
         if (!token) throw new Error('Token tidak ditemukan.');
 
         const [profileRes, productRes, addressRes] = await Promise.all([
-          axios.get('http://localhost:8000/api/pembeli/me', {
+          axios.get('http://10.31.248.110:8000/api/pembeli/me', {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:8000/api/produk/${id}`, {
+          axios.get(`http://10.31.248.110:8000/api/produk/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+          axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

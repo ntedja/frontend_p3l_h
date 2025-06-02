@@ -55,7 +55,7 @@ const categories = [
   { label: 'Kosmetik & Perawatan Diri', value: 'Kosmetik', icon: 'bi-heart', slug: 'kosmetik' },
 ];
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://10.31.248.110:8000/api';
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<'recent' | CategoryKey>('recent');

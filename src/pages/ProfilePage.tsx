@@ -38,7 +38,7 @@ export default function ProfilePage() {
       }
 
       try {
-        const response = await axios.get('http://localhost:8000/api/pembeli/me', {
+        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -86,7 +86,7 @@ export default function ProfilePage() {
 
     try {
       const response = await axios.put(
-        'http://localhost:8000/api/pembeli/me/update',
+        'http://10.31.248.110:8000/api/pembeli/me/update',
         {
           NAMA_PEMBELI: formData.NAMA_PEMBELI,
           NO_TELP_PEMBELI: formData.NO_TELP_PEMBELI,

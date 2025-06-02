@@ -91,7 +91,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://localhost:8000/api/pembeli/me', {
+        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -129,7 +129,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(response.data.data);
@@ -167,7 +167,7 @@ export default function AlamatPage() {
   useEffect(() => {
     if (showAddForm && provinces.length === 0) {
       axios
-        .get('http://localhost:8000/api/provinsi')
+        .get('http://10.31.248.110:8000/api/provinsi')
         .then((response) => setProvinces(response.data))
         .catch((error) => console.error('Failed to load provinces:', error));
     }
@@ -186,7 +186,7 @@ export default function AlamatPage() {
 
     if (provinceId) {
       axios
-        .get(`http://localhost:8000/api/kabupaten/${provinceId}`)
+        .get(`http://10.31.248.110:8000/api/kabupaten/${provinceId}`)
         .then((response) => setRegencies(response.data))
         .catch((error) => console.error('Failed to load regencies:', error));
     } else {
@@ -205,7 +205,7 @@ export default function AlamatPage() {
 
     if (regencyId) {
       axios
-        .get(`http://localhost:8000/api/kecamatan/${regencyId}`)
+        .get(`http://10.31.248.110:8000/api/kecamatan/${regencyId}`)
         .then((response) => setDistricts(response.data))
         .catch((error) => console.error('Failed to load districts:', error));
     } else {
@@ -219,7 +219,7 @@ export default function AlamatPage() {
 
     if (districtId) {
       axios
-        .get(`http://localhost:8000/api/desa/${districtId}`)
+        .get(`http://10.31.248.110:8000/api/desa/${districtId}`)
         .then((response) => setVillages(response.data))
         .catch((error) => console.error('Failed to load villages:', error));
     } else {
@@ -245,12 +245,15 @@ export default function AlamatPage() {
 
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
-        const response = await axios.delete(`http://localhost:8000/api/pembeli/me/alamat/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+        const response = await axios.delete(
+          `http://10.31.248.110:8000/api/pembeli/me/alamat/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
 
         if (response.data.success) {
           const updatedAddresses = addresses.filter((address) => address.ID_ALAMAT !== id);
@@ -282,13 +285,13 @@ export default function AlamatPage() {
 
     // Load location dropdowns
     axios
-      .get(`http://localhost:8000/api/kabupaten/${address.PROVINSI}`)
+      .get(`http://10.31.248.110:8000/api/kabupaten/${address.PROVINSI}`)
       .then((res) => setRegencies(res.data));
     axios
-      .get(`http://localhost:8000/api/kecamatan/${address.KABUPATEN}`)
+      .get(`http://10.31.248.110:8000/api/kecamatan/${address.KABUPATEN}`)
       .then((res) => setDistricts(res.data));
     axios
-      .get(`http://localhost:8000/api/desa/${address.KECAMATAN}`)
+      .get(`http://10.31.248.110:8000/api/desa/${address.KECAMATAN}`)
       .then((res) => setVillages(res.data));
   };
 
@@ -303,7 +306,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
+        `http://10.31.248.110:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -322,7 +325,7 @@ export default function AlamatPage() {
 
       if (response.data.success) {
         // Refresh the addresses list
-        const updatedResponse = await axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+        const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(updatedResponse.data.data);
@@ -350,7 +353,7 @@ export default function AlamatPage() {
 
     try {
       await axios.post(
-        'http://localhost:8000/api/pembeli/me/alamat',
+        'http://10.31.248.110:8000/api/pembeli/me/alamat',
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -363,7 +366,7 @@ export default function AlamatPage() {
       );
 
       // Refresh addresses list
-      const updatedResponse = await axios.get('http://localhost:8000/api/pembeli/me/alamat', {
+      const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
         headers: { Authorization: `Bearer ${token}` },
       });
 

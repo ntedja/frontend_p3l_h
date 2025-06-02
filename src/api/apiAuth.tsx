@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://10.31.248.110:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -264,7 +264,7 @@ export const registerPenitip = async (data: PenitipRegisterData): Promise<ApiRes
 
 export const loginPenitip = async (data: PenitipLoginData): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/login', data);
+    const response: AxiosResponse<ApiResponse> = await api.post('/login', data);
 
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
