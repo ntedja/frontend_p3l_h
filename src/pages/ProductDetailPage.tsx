@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { StarIcon } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import axios from 'axios';
 
 type Product = {
   id: number;
   name: string;
   price: string;
   category: string;
+  status: string;           // "Tersedia" atau "Tidak Tersedia"
   image: string;
   images: string[];
   garansi: string;
-  berat: string;
+  berat: number | string;
   deskripsi: string;
   penitip_name: string;
   penitip_since: string;
-  penitip_rating: number;
+  penitip_rating: number;   // rata‐rata rating semua barang Terjual milik penitip
+  rating: number;           // rating barang saat ini
 };
 
 interface Diskusi {
@@ -64,8 +67,27 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/produk/${id}`);
-        setProduct(res.data);
-        setSelectedImage(res.data.image);
+        const raw: any = res.data;
+
+        const mapped: Product = {
+          id: raw.id,
+          name: raw.name,
+          price: raw.price,
+          category: raw.category,
+          status: raw.status, // mapping status dari backend
+          image: raw.image,
+          images: Array.isArray(raw.images) ? raw.images : [raw.image],
+          garansi: raw.garansi ?? '-',
+          berat: raw.berat ?? '-',
+          deskripsi: raw.deskripsi ?? '',
+          penitip_name: raw.penitip_name ?? '-',
+          penitip_since: raw.penitip_since ?? '-',
+          penitip_rating: raw.penitip_rating ?? 0, // rata‐rata rating semua barang Terjual
+          rating: raw.rating ?? 0,
+        };
+
+        setProduct(mapped);
+        setSelectedImage(mapped.image);
       } catch (err) {
         console.error('Gagal mengambil data produk', err);
       }
@@ -74,14 +96,13 @@ export default function ProductDetailPage() {
     const fetchDiskusi = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/produk/${id}/diskusi`);
-        const diskusiData = res.data.map((d: any) => ({
+        const dataArr = Array.isArray(res.data) ? res.data : res.data.data;
+        const diskusiData: Diskusi[] = dataArr.map((d: any) => ({
           id: d.ID_DISKUSI,
           isi: d.PERTANYAAN,
           jawaban: d.JAWABAN || null,
           created_at: d.CREATE_AT,
-          pembeli: {
-            nama: d.pembeli?.NAMA_PEMBELI || 'Pengguna',
-          },
+          pembeli: { nama: d.pembeli?.NAMA_PEMBELI || 'Pengguna' },
         }));
         setDiskusi(diskusiData);
       } catch (err) {
@@ -122,7 +143,6 @@ export default function ProductDetailPage() {
     try {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-
       const res = await axios.post(
         `http://localhost:8000/api/produk/${id}/diskusi`,
         {
@@ -135,9 +155,7 @@ export default function ProductDetailPage() {
           },
         },
       );
-
       const newItem = res.data.data;
-
       setDiskusi((prev) => [
         ...prev,
         {
@@ -150,7 +168,7 @@ export default function ProductDetailPage() {
       setNewDiskusi('');
     } catch (err) {
       console.error('Gagal mengirim diskusi', err);
-      alert('Gagal mengirim diskusi. Periksa apakah kamu sudah login dan data valid.');
+      alert('Gagal mengirim diskusi. Periksa apakah Anda sudah login.');
     }
   };
 
@@ -169,7 +187,7 @@ export default function ProductDetailPage() {
               className="w-full h-[280px] object-contain border border-gray-300 rounded-md bg-[#CFCAB5]"
             />
             <div className="flex flex-row flex-wrap gap-2 mt-3">
-              {product.images?.map((imgUrl, index) => (
+              {product.images.map((imgUrl, index) => (
                 <img
                   key={index}
                   src={imgUrl}
@@ -190,13 +208,22 @@ export default function ProductDetailPage() {
             <div>
               <p className="font-semibold underline">Detail</p>
               <p>
+                
                 Garansi: <span className="italic">{product.garansi}</span>
+              
               </p>
               <p>
+                
                 Berat: <span className="italic">{product.berat}</span>
+              
               </p>
               <p>
+                
                 Kategori: <span className="italic">{product.category}</span>
+              </p>
+              <p>
+                Status: <span className="italic">{product.status}</span>
+              
               </p>
             </div>
 
@@ -205,9 +232,9 @@ export default function ProductDetailPage() {
             <div className="whitespace-pre-line">
               {showMore
                 ? product.deskripsi
-                : product.deskripsi.slice(0, 100) + (product.deskripsi.length > 100 ? '...' : '')}
+                : product.deskripsi.slice(0, 100) +
+                  (product.deskripsi.length > 100 ? '...' : '')}
             </div>
-
             {product.deskripsi.length > 100 && (
               <button
                 className="text-[#2D4C41] font-bold text-sm inline-block mt-2"
@@ -219,19 +246,39 @@ export default function ProductDetailPage() {
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Info Penitip */}
-            <div className="flex items-center gap-4 pt-4">
+            {/* Info Penitip + rata‐rata rating di bawah nama */}
+            <div className="flex items-start gap-4 pt-4">
               <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(product.penitip_name)}`}
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  product.penitip_name
+                )}`}
                 alt={product.penitip_name}
                 className="w-10 h-10 rounded-full"
               />
-              <div>
+              <div className="flex flex-col">
+                {/* Nama Penitip */}
                 <p className="font-semibold">{product.penitip_name}</p>
-                <p className="text-xs text-gray-600 flex items-center gap-2">
-                  <i className="bi bi-star-fill text-yellow-500"></i>
-                  {product.penitip_rating.toFixed(1)} / 5
-                  <span className="text-gray-400">&bull;</span>
+
+                {/* Tampilkan rata‐rata rating penitip selalu (bukan hanya saat tidak tersedia) */}
+                <div className="flex items-center gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const filled = star <= Math.round(product.penitip_rating);
+                    return (
+                      <StarIcon
+                        key={star}
+                        className={`w-4 h-4 ${filled ? 'text-yellow-500' : 'text-gray-300'}`}
+                        fill={filled ? 'currentColor' : 'none'}
+                        stroke={filled ? 'none' : 'currentColor'}
+                      />
+                    );
+                  })}
+                  <span className="text-xs text-gray-600">
+                    {product.penitip_rating.toFixed(1)} / 5
+                  </span>
+                </div>
+
+                {/* Teks “Bergabung sejak” */}
+                <p className="text-xs text-gray-600 mt-1">
                   Bergabung sejak {product.penitip_since}
                 </p>
               </div>
@@ -246,20 +293,22 @@ export default function ProductDetailPage() {
                 <span className="font-medium">Standard</span>
                 <span className="font-medium">Rp. 10.000</span>
               </div>
-              <p className="text-sm">Operasional 08.00 - 20.00</p>
+              <p className="text-sm">Operasional 08.00 – 20.00</p>
               <p className="text-xs text-gray-600">
                 Pembelian setelah jam 16.00 dikirim keesokan harinya
               </p>
             </div>
           </div>
 
-          {/* Box Harga */}
+          {/* Box Harga & Aksi */}
           <div className="w-full lg:w-[280px] h-[260px] border border-[#72B7B9] rounded-xl p-5 text-sm bg-[#FFF7E2] shadow-sm overflow-y-auto">
             <div className="flex justify-between font-semibold mb-2">
               <span className="text-[#72B7B9]">SubTotal:</span>
               <span className="text-[#1E2B32]">{product.price}</span>
             </div>
-            <p className="text-[#2D4C41] font-semibold mb-3">Tersedia</p>
+            <p className="text-[#2D4C41] font-semibold mb-3">
+              {product.status === 'Tersedia' ? 'Tersedia' : 'Tidak Tersedia'}
+            </p>
 
             <button
               className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
@@ -330,9 +379,7 @@ export default function ProductDetailPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(d.created_at).toLocaleString()}
-                    </p>
+                    <p className="text-xs text-gray-500">{new Date(d.created_at).toLocaleString()}</p>
                   </div>
                   <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
 
@@ -350,15 +397,15 @@ export default function ProductDetailPage() {
                   type="text"
                   value={newDiskusi}
                   onChange={(e) => setNewDiskusi(e.target.value)}
-                  placeholder="Tulis pertanyaanmu di sini..."
-                  className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
-                />
-                <button
-                  type="submit"
-                  className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
-                >
-                  Kirim
-                </button>
+                    placeholder="Tulis pertanyaanmu di sini..."
+                    className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                  >
+                    Kirim
+                  </button>
               </form>
             </div>
           )}
