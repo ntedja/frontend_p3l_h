@@ -21,6 +21,7 @@ type Address = {
   KABUPATEN: string;
   KECAMATAN: string;
   DESA_KELURAHAN: string;
+  is_default: boolean;
 };
 
 interface Province {
@@ -91,7 +92,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me', {
+        const response = await axios.get('http://192.168.155.88:8000/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -129,7 +130,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
+        const response = await axios.get('http://192.168.155.88:8000/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(response.data.data);
@@ -167,7 +168,7 @@ export default function AlamatPage() {
   useEffect(() => {
     if (showAddForm && provinces.length === 0) {
       axios
-        .get('http://10.31.248.110:8000/api/provinsi')
+        .get('http://192.168.155.88:8000/api/provinsi')
         .then((response) => setProvinces(response.data))
         .catch((error) => console.error('Failed to load provinces:', error));
     }
@@ -186,7 +187,7 @@ export default function AlamatPage() {
 
     if (provinceId) {
       axios
-        .get(`http://10.31.248.110:8000/api/kabupaten/${provinceId}`)
+        .get(`http://192.168.155.88:8000/api/kabupaten/${provinceId}`)
         .then((response) => setRegencies(response.data))
         .catch((error) => console.error('Failed to load regencies:', error));
     } else {
@@ -205,7 +206,7 @@ export default function AlamatPage() {
 
     if (regencyId) {
       axios
-        .get(`http://10.31.248.110:8000/api/kecamatan/${regencyId}`)
+        .get(`http://192.168.155.88:8000/api/kecamatan/${regencyId}`)
         .then((response) => setDistricts(response.data))
         .catch((error) => console.error('Failed to load districts:', error));
     } else {
@@ -219,7 +220,7 @@ export default function AlamatPage() {
 
     if (districtId) {
       axios
-        .get(`http://10.31.248.110:8000/api/desa/${districtId}`)
+        .get(`http://192.168.155.88:8000/api/desa/${districtId}`)
         .then((response) => setVillages(response.data))
         .catch((error) => console.error('Failed to load villages:', error));
     } else {
@@ -246,7 +247,7 @@ export default function AlamatPage() {
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
         const response = await axios.delete(
-          `http://10.31.248.110:8000/api/pembeli/me/alamat/${id}`,
+          `http://192.168.155.88:8000/api/pembeli/me/alamat/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -285,13 +286,13 @@ export default function AlamatPage() {
 
     // Load location dropdowns
     axios
-      .get(`http://10.31.248.110:8000/api/kabupaten/${address.PROVINSI}`)
+      .get(`http://192.168.155.88:8000/api/kabupaten/${address.PROVINSI}`)
       .then((res) => setRegencies(res.data));
     axios
-      .get(`http://10.31.248.110:8000/api/kecamatan/${address.KABUPATEN}`)
+      .get(`http://192.168.155.88:8000/api/kecamatan/${address.KABUPATEN}`)
       .then((res) => setDistricts(res.data));
     axios
-      .get(`http://10.31.248.110:8000/api/desa/${address.KECAMATAN}`)
+      .get(`http://192.168.155.88:8000/api/desa/${address.KECAMATAN}`)
       .then((res) => setVillages(res.data));
   };
 
@@ -306,7 +307,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `http://10.31.248.110:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
+        `http://192.168.155.88:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -325,9 +326,12 @@ export default function AlamatPage() {
 
       if (response.data.success) {
         // Refresh the addresses list
-        const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const updatedResponse = await axios.get(
+          'http://192.168.155.88:8000/api/pembeli/me/alamat',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         setAddresses(updatedResponse.data.data);
         setFilteredAddresses(updatedResponse.data.data);
         setShowEditForm(false);
@@ -342,6 +346,41 @@ export default function AlamatPage() {
     }
   };
 
+  const handleSetDefault = async (id: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login first');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://192.168.155.88:8000/api/pembeli/me/alamat/${id}/set-default`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.data.success) {
+        // Update list alamat agar yang default tampil terbaru
+        const updatedAddresses = addresses.map((addr) => ({
+          ...addr,
+          is_default: addr.ID_ALAMAT === id,
+        }));
+
+        setAddresses(updatedAddresses);
+        setFilteredAddresses(updatedAddresses);
+        setError('');
+      } else {
+        setError(response.data.message || 'Failed to set default address');
+      }
+    } catch (error) {
+      console.error('Set default address error:', error);
+      setError('Failed to set default address. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -353,7 +392,7 @@ export default function AlamatPage() {
 
     try {
       await axios.post(
-        'http://10.31.248.110:8000/api/pembeli/me/alamat',
+        'http://192.168.155.88:8000/api/pembeli/me/alamat',
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -366,7 +405,7 @@ export default function AlamatPage() {
       );
 
       // Refresh addresses list
-      const updatedResponse = await axios.get('http://10.31.248.110:8000/api/pembeli/me/alamat', {
+      const updatedResponse = await axios.get('http://192.168.155.88:8000/api/pembeli/me/alamat', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -501,7 +540,14 @@ export default function AlamatPage() {
               ) : (
                 filteredAddresses.map((address) => (
                   <div key={address.ID_ALAMAT} className="border rounded-lg p-4 relative">
-                    <h3 className="font-semibold">{address.JUDUL}</h3>
+                    <h3 className="font-semibold flex items-center gap-2">
+                      {address.JUDUL}
+                      {address.is_default && (
+                        <span className="bg-green-500 text-white px-2 py-0.5 text-xs rounded">
+                          Default
+                        </span>
+                      )}
+                    </h3>
                     <p>{address.NAMA_JALAN}</p>
                     <p>
                       {address.DESA_KELURAHAN}, {address.KECAMATAN}
@@ -510,6 +556,14 @@ export default function AlamatPage() {
                       {address.KABUPATEN}, {address.PROVINSI}
                     </p>
                     <div className="mt-4 flex justify-end gap-2">
+                      {!address.is_default && (
+                        <button
+                          onClick={() => handleSetDefault(address.ID_ALAMAT)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Jadikan Default
+                        </button>
+                      )}
                       <button
                         onClick={() => handleEditClick(address)}
                         className="bg-[#48635B] text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"

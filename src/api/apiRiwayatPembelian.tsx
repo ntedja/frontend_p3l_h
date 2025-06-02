@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://10.31.248.110:8000/api';
+const API_BASE_URL = 'http://192.168.155.88:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -69,7 +69,7 @@ export const fetchRiwayatPesanan = async (token: string): Promise<Pesanan[]> => 
       return rawList.map((raw) => ({
         id: raw.id,
         kode: raw.kode,
-        tanggal: raw.tanggal, // di API list memang fieldnya `tanggal`
+        tanggal: raw.tgl_pesan_pembelian, // di API list memang fieldnya `tanggal`
         status_transaksi: raw.status_transaksi,
         total: raw.total ?? 0,
         item_count: raw.item_count ?? 0,
@@ -144,7 +144,7 @@ export const fetchPesananDetail = async (token: string, id: number): Promise<Pes
       return {
         id: raw.id,
         kode: raw.kode,
-        tanggal: raw.tanggal_pesan,
+        tanggal: raw.tgl_pesan_pembelian,
         status_transaksi: raw.status_transaksi,
         total: raw.total_bayar,
         item_count: items.length,

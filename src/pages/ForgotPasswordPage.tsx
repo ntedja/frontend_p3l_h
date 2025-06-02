@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      const res = await axios.post('http://10.31.248.110:8000/api/forgot-password', {
+      const res = await axios.post('http://192.168.155.88:8000/api/forgot-password', {
         email,
       });
 
