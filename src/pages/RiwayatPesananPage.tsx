@@ -15,8 +15,8 @@ export const getToken = (): string | null => {
 };
 
 // Helper style status pesanan
-const getStatusStyle = (status?: string) => {
-  if (!status) {
+const getStatusStyle = (status_transaksi?: string) => {
+  if (!status_transaksi) {
     return {
       color: 'text-gray-700',
       bg: 'bg-gray-50',
@@ -25,7 +25,7 @@ const getStatusStyle = (status?: string) => {
     };
   }
 
-  switch (status.toLowerCase()) {
+  switch (status_transaksi.toLowerCase()) {
     case 'selesai':
       return {
         color: 'text-green-700',
@@ -83,7 +83,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           return;
         }
         // Panggil fetchPesananDetail lokal dari kode kedua
-        const response = await fetch(`http://10.31.248.110:8000/api/pesanan/${pesananId}`, {
+        const response = await fetch(`http://192.168.155.88:8000/api/pesanan/${pesananId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -118,7 +118,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
         const mappedPesanan: Pesanan = {
           id: raw.id,
           kode: raw.kode,
-          tanggal: raw.tanggal_pesan,
+          tanggal: raw.tgl_pesan_pembelian,
           status_transaksi: raw.status_transaksi,
           total: raw.total_bayar,
           item_count: items.length,
@@ -421,7 +421,7 @@ export default function RiwayatPesananPage() {
           return;
         }
         // Fetch riwayat pesanan secara lokal
-        const response = await fetch(`http://10.31.248.110:8000/api/pesanan`, {
+        const response = await fetch(`http://192.168.155.88:8000/api/pesanan`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
