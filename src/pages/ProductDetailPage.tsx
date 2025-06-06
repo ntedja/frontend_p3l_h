@@ -48,7 +48,7 @@ export default function ProductDetailPage() {
     if (!token) throw new Error('Not authenticated');
 
     await axios.post(
-      'http://192.168.155.88:8000/api/cart-items',
+      'http://127.0.0.1:8000/api/cart-items',
       { ID_BARANG: productId, quantity: 1 },
       { headers: { Authorization: `Bearer ${token}` } },
     );
@@ -58,7 +58,7 @@ export default function ProductDetailPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    await axios.delete(`http://192.168.155.88:8000/api/cart-items/remove/${productId}`, {
+    await axios.delete(`http://127.0.0.1:8000/api/cart-items/remove/${productId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
@@ -66,7 +66,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://192.168.155.88:8000/api/produk/${id}`);
+        const res = await axios.get(`http://127.0.0.1:8000/api/produk/${id}`);
         const raw: any = res.data;
 
         const mapped: Product = {
@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
 
     const fetchDiskusi = async () => {
       try {
-        const res = await axios.get(`http://192.168.155.88:8000/api/produk/${id}/diskusi`);
+        const res = await axios.get(`http://127.0.0.1:8000/api/produk/${id}/diskusi`);
         const dataArr = Array.isArray(res.data) ? res.data : res.data.data;
         const diskusiData: Diskusi[] = dataArr.map((d: any) => ({
           id: d.ID_DISKUSI,
@@ -144,7 +144,7 @@ export default function ProductDetailPage() {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await axios.post(
-        `http://192.168.155.88:8000/api/produk/${id}/diskusi`,
+        `http://127.0.0.1:8000/api/produk/${id}/diskusi`,
         {
           PERTANYAAN: newDiskusi,
           ID_PEMBELI: user.ID_PEMBELI,
