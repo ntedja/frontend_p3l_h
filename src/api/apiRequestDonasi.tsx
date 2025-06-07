@@ -1,7 +1,7 @@
 // src/services/apiRequestDonasi.ts
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.155.88:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 export interface TransaksiDonasi {
   ID_TRANSAKSI: number;

@@ -16,7 +16,7 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://192.168.155.88:8000/api/login', {
+      const res = await axios.post('http://localhost:8000/api/login', {
         email: email,
         password: password,
       });
