@@ -26,14 +26,14 @@ const getStatusStyle = (status_transaksi?: string) => {
   }
 
   switch (status_transaksi.toLowerCase()) {
-    case 'selesai':
+    case 'transaksi berhasil':
       return {
         color: 'text-green-700',
         bg: 'bg-green-50',
         border: 'border-green-300',
         icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
       };
-    case 'dibatalkan':
+    case 'hangus':
       return {
         color: 'text-red-700',
         bg: 'bg-red-50',
@@ -83,7 +83,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           return;
         }
         // Panggil fetchPesananDetail lokal dari kode kedua
-        const response = await fetch(`http://localhost:8000/api/pesanan/${pesananId}`, {
+        const response = await fetch(`http://172.16.37.21:8000/api/pesanan/${pesananId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -421,7 +421,7 @@ export default function RiwayatPesananPage() {
           return;
         }
         // Fetch riwayat pesanan secara lokal
-        const response = await fetch(`http://localhost:8000/api/pesanan`, {
+        const response = await fetch(`http://172.16.37.21:8000/api/pesanan`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',

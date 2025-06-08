@@ -16,7 +16,7 @@ export default function LoginPageOrganisasi() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://localhost:8000/api/organisasi/login', {
+      const res = await axios.post('http://172.16.37.21:8000/api/organisasi/login', {
         EMAIL_ORGANISASI: email,
         PASSWORD_ORGANISASI: password,
       });

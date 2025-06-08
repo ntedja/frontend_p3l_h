@@ -25,7 +25,7 @@ export default function CartPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    const response = await axios.get('http://localhost:8000/api/cart-items', {
+    const response = await axios.get('http://172.16.37.21:8000/api/cart-items', {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.data.success) throw new Error('Failed to fetch cart');
@@ -45,7 +45,7 @@ export default function CartPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    await axios.delete(`http://localhost:8000/api/cart-items/remove/${id}`, {
+    await axios.delete(`http://172.16.37.21:8000/api/cart-items/remove/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   }

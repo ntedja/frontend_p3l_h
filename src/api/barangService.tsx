@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://172.16.37.21:8000/api';
 
 export const getBarangListPublic = async () => {
   try {
@@ -12,7 +12,7 @@ export const getBarangListPublic = async () => {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
-      url: `${API_BASE_URL}/barang/available`,
+      url: `${API_BASE_URL}/produk/available`,
     });
     throw new Error(error.response?.data?.message || 'Gagal mengambil data barang');
   }
@@ -49,7 +49,7 @@ export const getOrganisasiRequests = async () => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Anda harus login terlebih dahulu');
 
-    const response = await axios.get(`${API_BASE_URL}/barang/request`, {
+    const response = await axios.get(`${API_BASE_URL}/produk/request`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
