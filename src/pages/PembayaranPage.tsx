@@ -16,7 +16,7 @@ export default function PembayaranPage() {
       const token = localStorage.getItem('token');
       axios
         .post(
-          `http://172.16.37.21:8000/api/checkout/${orderId}/batal`,
+          `http://192.168.18.73:8000/api/checkout/${orderId}/batal`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -47,7 +47,7 @@ export default function PembayaranPage() {
       const formData = new FormData();
       formData.append('bukti_transfer', file);
 
-      await axios.post(`http://172.16.37.21:8000/api/checkout/${orderId}/upload-bukti`, formData, {
+      await axios.post(`http://192.168.18.73:8000/api/checkout/${orderId}/upload-bukti`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

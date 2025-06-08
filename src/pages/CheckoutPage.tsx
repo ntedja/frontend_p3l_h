@@ -113,7 +113,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const response = await axios.post('http://172.16.37.21:8000/api/checkout', payload, {
+      const response = await axios.post('http://192.168.18.73:8000/api/checkout', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -146,13 +146,13 @@ export default function CheckoutPage() {
         if (!token) throw new Error('Token tidak ditemukan.');
 
         const [profileRes, productRes, addressRes] = await Promise.all([
-          axios.get('http://172.16.37.21:8000/api/pembeli/me', {
+          axios.get('http://192.168.18.73:8000/api/pembeli/me', {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://172.16.37.21:8000/api/produk/${id}`, {
+          axios.get(`http://192.168.18.73:8000/api/produk/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get('http://172.16.37.21:8000/api/pembeli/me/alamat', {
+          axios.get('http://192.168.18.73:8000/api/pembeli/me/alamat', {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
