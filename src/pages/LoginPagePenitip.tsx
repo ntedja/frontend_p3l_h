@@ -16,7 +16,7 @@ export default function LoginPagePenitip() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://10.31.248.110:8000/api/login', {
+      const res = await axios.post('http://127.0.0.1:8000/api/login', {
         EMAIL_PENITIP: email,
         PASSWORD_PENITIP: password,
       });

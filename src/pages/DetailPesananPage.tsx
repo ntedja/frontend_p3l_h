@@ -22,12 +22,8 @@ export default function DetailPesananPage() {
         { id: 1, nama: 'Sabun Organik', jumlah: 1, harga: 80000, rating: 0 },
         { id: 2, nama: 'Sikat Bambu', jumlah: 2, harga: 85000, rating: 0 },
       ],
-      '2': [
-        { id: 3, nama: 'Piring Daur Ulang', jumlah: 1, harga: 180000, rating: 0 },
-      ],
-      '3': [
-        { id: 4, nama: 'Botol Stainless', jumlah: 2, harga: 160000, rating: 0 },
-      ],
+      '2': [{ id: 3, nama: 'Piring Daur Ulang', jumlah: 1, harga: 180000, rating: 0 }],
+      '3': [{ id: 4, nama: 'Botol Stainless', jumlah: 2, harga: 160000, rating: 0 }],
     };
 
     if (id && dataDummy[id]) {
@@ -36,11 +32,7 @@ export default function DetailPesananPage() {
   }, [id]);
 
   const handleRating = (barangId: number, rating: number) => {
-    setBarang((prev) =>
-      prev.map((item) =>
-        item.id === barangId ? { ...item, rating } : item
-      )
-    );
+    setBarang((prev) => prev.map((item) => (item.id === barangId ? { ...item, rating } : item)));
   };
 
   return (
@@ -49,19 +41,22 @@ export default function DetailPesananPage() {
       <main className="max-w-4xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold mb-6">Detail Pesanan #{id}</h1>
         {barang.map((item) => (
-          <div key={item.id} className="mb-6 p-4 border border-[#5B8482] rounded-lg bg-white shadow-sm">
+          <div
+            key={item.id}
+            className="mb-6 p-4 border border-[#5B8482] rounded-lg bg-white shadow-sm"
+          >
             <h2 className="text-lg font-semibold">{item.nama}</h2>
             <p className="text-sm text-gray-700">Jumlah: {item.jumlah}</p>
-            <p className="text-sm text-gray-700 mb-2">Harga: Rp {item.harga.toLocaleString('id-ID')}</p>
+            <p className="text-sm text-gray-700 mb-2">
+              Harga: Rp {item.harga.toLocaleString('id-ID')}
+            </p>
             <div className="flex items-center gap-1">
               <p className="text-sm">Rating:</p>
               {[1, 2, 3, 4, 5].map((val) => (
                 <button
                   key={val}
                   onClick={() => handleRating(item.id, val)}
-                  className={`text-lg ${
-                    item.rating >= val ? 'text-yellow-500' : 'text-gray-400'
-                  }`}
+                  className={`text-lg ${item.rating >= val ? 'text-yellow-500' : 'text-gray-400'}`}
                 >
                   ★
                 </button>

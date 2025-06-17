@@ -51,9 +51,9 @@ export default function RegisterPageOrganisasi() {
       const result = await registerOrganisasi(formData);
 
       if (result.success) {
-        // Registration successful, navigate to login with success message
-        navigate('/loginorganisasi', {
-          state: { registrationSuccess: true, email: formData.EMAIL_ORGANISASI },
+        // Registration successful, navigate to login with success message and preselect user type
+        navigate('/login', {
+          state: { registrationSuccess: true, email: formData.EMAIL_ORGANISASI, userType: 'organization' },
         });
       } else {
         setErrorMessage(getErrorMessage(result));

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon, StarIcon } from 'lucide-react';
+import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon, StarIcon, UploadIcon } from 'lucide-react';
 
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -40,6 +40,20 @@ const getStatusStyle = (status?: string) => {
         border: 'border-red-300',
         icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
       };
+    case 'transaksi selesai':
+      return {
+        color: 'text-green-700',
+        bg: 'bg-green-50',
+        border: 'border-green-300',
+        icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
+      };
+    case 'hangus':
+      return {
+        color: 'text-red-700',
+        bg: 'bg-red-50',
+        border: 'border-red-300',
+        icon: <XCircleIcon className="w-5 h-5 text-red-600" />,
+      };
     default:
       return {
         color: 'text-yellow-700',
@@ -54,14 +68,89 @@ const getStatusStyle = (status?: string) => {
 interface PesananDetailModalProps {
   pesananId: number | null;
   onClose: () => void;
+  onStatusChange: (id: number, newStatus: string) => void;
 }
 
-const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onClose }) => {
+const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
+  pesananId,
+  onClose,
+  onStatusChange,
+}) => {
   const [pesananDetail, setPesananDetail] = useState<Pesanan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
   const [ratings, setRatings] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    console.log('Detail Pesanan:', pesananDetail);
+    console.log('Status:', pesananDetail?.status_transaksi);
+  }, [pesananDetail]);
+
+  // Fungsi untuk menghitung waktu tersisa
+  const calculateRemainingTime = (createdAt: string): number => {
+    const createdTime = new Date(createdAt).getTime();
+    const now = new Date().getTime();
+    const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+    return Math.max(60 - elapsedSeconds, 0);
+  };
+
+  // Fungsi untuk memeriksa apakah pesanan sudah hangus
+  const checkIfExpired = (createdAt: string): boolean => {
+    return calculateRemainingTime(createdAt) <= 0;
+  };
+
+  // Fungsi untuk mengupload bukti pembayaran
+  const handleUploadBukti = async () => {
+    if (!file || !pesananDetail) return;
+
+    setUploading(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Anda belum login. Silakan login untuk mengupload bukti pembayaran.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('bukti_transfer', file);
+
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/checkout/${pesananDetail.id}/upload-bukti`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        },
+      );
+
+      const json = await response.json();
+
+      // First check if the response is successful
+      if (!response.ok) {
+        throw new Error(json.message || 'Gagal mengupload bukti pembayaran');
+      }
+
+      // Update status pesanan - handle different response structures
+      const updatedPesanan = {
+        ...pesananDetail,
+        status_bukti_transfer: 'Menunggu Verifikasi',
+        bukti_transfer: json.bukti_transfer || json.data?.bukti_transfer || 'Bukti terupload',
+      };
+
+      setPesananDetail(updatedPesanan);
+      alert('Bukti pembayaran berhasil diupload!');
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan saat mengupload bukti pembayaran');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Fetch pesanan detail secara lokal (kode kedua)
   useEffect(() => {
@@ -69,6 +158,10 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
       setPesananDetail(null);
       setLoading(false);
       setError(null);
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        setTimerInterval(null);
+      }
       return;
     }
 
@@ -82,8 +175,8 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           setLoading(false);
           return;
         }
-        // Panggil fetchPesananDetail lokal dari kode kedua
-        const response = await fetch(`http://10.31.248.110:8000/api/pesanan/${pesananId}`, {
+
+        const response = await fetch(`http://127.0.0.1:8000/api/pesanan/${pesananId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -125,7 +218,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           alamat_pengiriman: raw.alamat_pengiriman ?? undefined,
           metode_pembayaran: raw.metode_pembayaran ?? undefined,
           bukti_transfer: raw.bukti_transfer ?? undefined,
-          tanggal_ambil_kirim: raw.tgl_ambil_kirim ?? undefined,
+          // tanggal_ambil_kirim: raw.tgl_ambil_kirim ?? undefined,
           tanggal_lunas_pembelian: raw.tgl_lunas ?? undefined,
           delivery_method: raw.delivery_method ?? undefined,
           poin_didapat: raw.poin_didapat ?? undefined,
@@ -141,6 +234,39 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
           initialRatings[item.id] = 0;
         });
         setRatings(initialRatings);
+
+        // Set timer jika status masih menunggu pembayaran
+        if (
+          mappedPesanan.status_transaksi?.toLowerCase() === 'menunggu pembayaran' &&
+          raw.tanggal_pesan
+        ) {
+          const remaining = calculateRemainingTime(raw.tanggal_pesan);
+          setRemainingTime(remaining);
+
+          // Jika waktu sudah habis, update status
+          if (remaining <= 0) {
+            await updateStatusToExpired(mappedPesanan.id);
+          } else {
+            // Mulai timer
+            const interval = setInterval(async () => {
+              setRemainingTime((prev) => {
+                if (prev === null) return null;
+                const newTime = prev - 1;
+
+                // Jika waktu habis, update status
+                if (newTime <= 0) {
+                  updateStatusToExpired(mappedPesanan.id);
+                  clearInterval(interval);
+                  return 0;
+                }
+
+                return newTime;
+              });
+            }, 1000);
+
+            setTimerInterval(interval);
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Terjadi kesalahan saat memuat detail pesanan');
       } finally {
@@ -148,8 +274,43 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
       }
     };
 
+    const updateStatusToExpired = async (id: number) => {
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const response = await fetch(`http://127.0.0.1:8000/api/checkout/${id}/batal`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const json = await response.json();
+        if (json.success) {
+          setPesananDetail((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              status_transaksi: 'Hangus',
+            };
+          });
+          onStatusChange(id, 'Hangus');
+        }
+      } catch (err) {
+        console.error('Gagal mengupdate status pesanan:', err);
+      }
+    };
+
     loadDetail();
-  }, [pesananId]);
+
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [pesananId, onStatusChange]);
 
   if (pesananId === null) return null;
 
@@ -160,6 +321,18 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch {
       return dateString;
@@ -214,7 +387,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
               <div>
                 <p className="text-sm text-gray-600">Tanggal Pesanan:</p>
                 <p className="font-semibold text-lg text-[#1E2B32]">
-                  {formatDate(pesananDetail.tanggal)}
+                  {formatDate(pesananDetail.tanggal)} {formatTime(pesananDetail.tanggal)}
                 </p>
               </div>
               <div>
@@ -237,6 +410,71 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                 </p>
               </div>
             </div>
+
+            {/* Timer untuk pesanan yang belum dibayar */}
+            {pesananDetail.status_transaksi?.toLowerCase() === 'menunggu pembayaran' && (
+              <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md">
+                <div className="flex items-center justify-between">
+                  <p className="text-yellow-800 font-medium">
+                    Sisa waktu untuk upload bukti pembayaran:
+                  </p>
+                  <p className="text-red-600 font-bold">
+                    {remainingTime !== null ? `${remainingTime} detik` : 'Menghitung...'}
+                  </p>
+                </div>
+                {remainingTime !== null && remainingTime <= 30 && (
+                  <p className="text-red-600 text-sm mt-1">
+                    Segera upload bukti pembayaran sebelum waktu habis!
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Form upload bukti pembayaran */}
+            {pesananDetail.status_transaksi?.toLowerCase() === 'menunggu pembayaran' && (
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-[#1E2B32] mb-3">
+                  Upload Bukti Pembayaran
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Nomor Rekening:</p>
+                    <p className="font-medium">1234567890 (Bank ABC - ReuseMart)</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pilih File Bukti Transfer
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-[#5B8482] file:text-white
+                        hover:file:bg-[#48635B]"
+                    />
+                    {file && (
+                      <p className="mt-1 text-sm text-gray-600">File terpilih: {file.name}</p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleUploadBukti}
+                    disabled={!file || uploading}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-white ${
+                      !file || uploading ? 'bg-gray-400' : 'bg-[#5B8482] hover:bg-[#48635B]'
+                    } transition-colors`}
+                  >
+                    <UploadIcon className="w-5 h-5" />
+                    {uploading ? 'Mengupload...' : 'Upload Bukti Pembayaran'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Pengiriman & Pembayaran */}
             {(pesananDetail.alamat_pengiriman ||
@@ -296,9 +534,20 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                   {pesananDetail.bukti_transfer && (
                     <div>
                       <p className="text-sm text-gray-600">Bukti Transfer:</p>
-                      <p className="font-medium text-[#1E2B32]">
-                        {truncateString(pesananDetail.bukti_transfer)}
-                      </p>
+                      {pesananDetail.bukti_transfer.startsWith('http') ? (
+                        <a
+                          href={pesananDetail.bukti_transfer}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Lihat Bukti Transfer
+                        </a>
+                      ) : (
+                        <p className="font-medium text-[#1E2B32]">
+                          {truncateString(pesananDetail.bukti_transfer)}
+                        </p>
+                      )}
                     </div>
                   )}
                   {pesananDetail.status_bukti_transfer && (
@@ -359,27 +608,29 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({ pesananId, onCl
                           </p>
 
                           {/* Tombol rating bintang */}
-                          <div className="flex items-center space-x-1">
-                            {[1, 2, 3, 4, 5].map((star) => {
-                              const filled = star <= currentRating;
-                              return (
-                                <button
-                                  key={star}
-                                  onClick={async () => {
-                                    await submitRatingBarang(item.id, star);
-                                    setRatings((prev) => ({
-                                      ...prev,
-                                      [item.id]: star,
-                                    }));
-                                  }}
-                                  className="focus:outline-none"
-                                  title={`Beri ${star} bintang`}
-                                >
-                                  {renderStar(filled)}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          {pesananDetail.status_transaksi?.toLowerCase() === 'selesai' && (
+                            <div className="flex items-center space-x-1">
+                              {[1, 2, 3, 4, 5].map((star) => {
+                                const filled = star <= currentRating;
+                                return (
+                                  <button
+                                    key={star}
+                                    onClick={async () => {
+                                      await submitRatingBarang(item.id, star);
+                                      setRatings((prev) => ({
+                                        ...prev,
+                                        [item.id]: star,
+                                      }));
+                                    }}
+                                    className="focus:outline-none"
+                                    title={`Beri ${star} bintang`}
+                                  >
+                                    {renderStar(filled)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -421,7 +672,7 @@ export default function RiwayatPesananPage() {
           return;
         }
         // Fetch riwayat pesanan secara lokal
-        const response = await fetch(`http://10.31.248.110:8000/api/pesanan`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/pesanan`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -429,7 +680,22 @@ export default function RiwayatPesananPage() {
         });
         const json = await response.json();
         if (!json.success) throw new Error(json.message || 'Gagal mengambil data riwayat pesanan');
-        setPesanan(json.data);
+
+        // Periksa apakah ada pesanan yang sudah melebihi waktu pembayaran
+        const now = new Date();
+        const updatedPesanan = json.data.map((p: any) => {
+          if (p.status_transaksi === 'Menunggu Pembayaran' && p.tanggal_pesan) {
+            const createdTime = new Date(p.tanggal_pesan).getTime();
+            const elapsedSeconds = Math.floor((now.getTime() - createdTime) / 1000);
+            if (elapsedSeconds > 60) {
+              // Jika lebih dari 1 menit, update status menjadi Hangus
+              return { ...p, status_transaksi: 'Hangus' };
+            }
+          }
+          return p;
+        });
+
+        setPesanan(updatedPesanan);
       } catch (err: any) {
         setError(err.message || 'Terjadi kesalahan saat memuat data');
       } finally {
@@ -448,6 +714,12 @@ export default function RiwayatPesananPage() {
   const handleCloseDetailModal = () => {
     setSelectedPesananId(null);
     setShowDetailModal(false);
+  };
+
+  const handleStatusChange = (id: number, newStatus: string) => {
+    setPesanan((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status_transaksi: newStatus } : p)),
+    );
   };
 
   return (
@@ -524,7 +796,11 @@ export default function RiwayatPesananPage() {
       </main>
 
       {showDetailModal && (
-        <PesananDetailModal pesananId={selectedPesananId} onClose={handleCloseDetailModal} />
+        <PesananDetailModal
+          pesananId={selectedPesananId}
+          onClose={handleCloseDetailModal}
+          onStatusChange={handleStatusChange}
+        />
       )}
       <Footer />
     </div>
