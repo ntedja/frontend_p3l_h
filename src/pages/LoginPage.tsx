@@ -14,7 +14,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState(''); // For registration success message
-  const [loginRequiredModal, setLoginRequiredModal] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
+  const [loginRequiredModal, setLoginRequiredModal] = useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
   // const [userType, setUserType] = useState<'customer_staff' | 'organization'>(() => {
   //   const state = location.state as { userType?: 'customer_staff' | 'organization' };
   //   return state?.userType || 'customer_staff';
@@ -73,7 +76,10 @@ export default function LoginPage() {
       loggedIn = true;
     } catch (pembeliPegawaiError: any) {
       // specificError = pembeliPegawaiError.response?.data?.message || 'Gagal login sebagai pelanggan/pegawai.';
-      console.warn('Pembeli/Pegawai login failed:', pembeliPegawaiError.response?.data?.message || pembeliPegawaiError.message);
+      console.warn(
+        'Pembeli/Pegawai login failed:',
+        pembeliPegawaiError.response?.data?.message || pembeliPegawaiError.message,
+      );
     }
 
     // Attempt 2: Login as Organisasi
@@ -96,7 +102,10 @@ export default function LoginPage() {
         loggedIn = true;
       } catch (organisasiError: any) {
         // specificError = getErrorMessage(organisasiError as any) || 'Gagal login sebagai organisasi.';
-        console.warn('Organisasi login failed:', getErrorMessage(organisasiError as any) || organisasiError.message);
+        console.warn(
+          'Organisasi login failed:',
+          getErrorMessage(organisasiError as any) || organisasiError.message,
+        );
       }
     }
 
@@ -120,7 +129,10 @@ export default function LoginPage() {
         loggedIn = true;
       } catch (penitipError: any) {
         // specificError = getErrorMessage(penitipError as any) || 'Gagal login sebagai penitip.';
-        console.warn('Penitip login failed:', getErrorMessage(penitipError as any) || penitipError.message);
+        console.warn(
+          'Penitip login failed:',
+          getErrorMessage(penitipError as any) || penitipError.message,
+        );
       }
     }
 
@@ -241,10 +253,7 @@ export default function LoginPage() {
 
             <p className="text-sm text-center mt-6 text-[#2F3F3A]">
               Belum punya akun?{' '}
-              <a
-                href={'/register'}
-                className="text-[#3E5B50] font-semibold hover:underline"
-              >
+              <a href={'/register'} className="text-[#3E5B50] font-semibold hover:underline">
                 Daftar
               </a>
               {' / '}

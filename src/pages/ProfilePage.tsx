@@ -4,7 +4,8 @@ import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
 import { api } from '../api/apiAuth'; // Import the centralized API instance
 import type { AxiosError } from 'axios'; // Import AxiosError for better error typing
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link } from 'react-router-dom';
+import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls'; // Adjust path as needed
 
 interface PembeliProfileData {
   NAMA_PEMBELI?: string;
@@ -21,8 +22,15 @@ interface OrganisasiProfileData {
   ALAMAT_ORGANISASI?: string;
 }
 
-type ProfileData = PembeliProfileData & OrganisasiProfileData;
-type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | null;
+interface PenitipProfileData {
+  NAMA_PENITIP?: string;
+  EMAIL_PENITIP?: string;
+  NO_TELP_PENITIP?: string;
+  ALAMAT_PENITIP?: string;
+}
+
+type ProfileData = PembeliProfileData & OrganisasiProfileData & PenitipProfileData;
+type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 
 export default function ProfilePage() {
   const [formData, setFormData] = useState<ProfileData>({});
@@ -56,6 +64,8 @@ export default function ProfilePage() {
         relativeApiUrl = '/pembeli/me';
       } else if (role === 'organisasi') {
         relativeApiUrl = '/organisasi/me';
+      } else if (role === 'penitip') {
+        relativeApiUrl = '/penitip/me';
       } else {
         setError(`Peran pengguna "${role}" tidak didukung untuk halaman profil ini.`);
         setIsLoading(false);
@@ -81,6 +91,13 @@ export default function ProfilePage() {
               EMAIL_ORGANISASI: userData.EMAIL_ORGANISASI || '',
               NO_TELP_ORGANISASI: userData.NO_TELP_ORGANISASI || '',
               ALAMAT_ORGANISASI: userData.ALAMAT_ORGANISASI || '',
+            });
+          } else if (role === 'penitip') {
+            setFormData({
+              NAMA_PENITIP: userData.NAMA_PENITIP || '',
+              EMAIL_PENITIP: userData.EMAIL_PENITIP || '',
+              NO_TELP_PENITIP: userData.NO_TELP_PENITIP || '',
+              ALAMAT_PENITIP: userData.ALAMAT_PENITIP || '',
             });
           }
         } else {
@@ -141,6 +158,13 @@ export default function ProfilePage() {
         NO_TELP_ORGANISASI: formData.NO_TELP_ORGANISASI,
         ALAMAT_ORGANISASI: formData.ALAMAT_ORGANISASI,
       };
+    } else if (userRole === 'penitip') {
+      relativeApiUrl = '/penitip/me/update';
+      payload = {
+        NAMA_PENITIP: formData.NAMA_PENITIP,
+        NO_TELP_PENITIP: formData.NO_TELP_PENITIP,
+        ALAMAT_PENITIP: formData.ALAMAT_PENITIP,
+      };
     } else {
       setError('Peran pengguna tidak didukung untuk pembaruan profil.');
       return;
@@ -183,8 +207,22 @@ export default function ProfilePage() {
     );
   }
 
-  const displayName = userRole === 'pembeli' ? formData.NAMA_PEMBELI : formData.NAMA_ORGANISASI;
-  const displayEmail = userRole === 'pembeli' ? formData.EMAIL_PEMBELI : formData.EMAIL_ORGANISASI;
+  const displayName =
+    userRole === 'pembeli'
+      ? formData.NAMA_PEMBELI
+      : userRole === 'organisasi'
+      ? formData.NAMA_ORGANISASI
+      : userRole === 'penitip'
+      ? formData.NAMA_PENITIP
+      : 'Pengguna';
+  const displayEmail =
+    userRole === 'pembeli'
+      ? formData.EMAIL_PEMBELI
+      : userRole === 'organisasi'
+      ? formData.EMAIL_ORGANISASI
+      : userRole === 'penitip'
+      ? formData.EMAIL_PENITIP
+      : '';
 
   return (
     <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32]">
@@ -265,12 +303,28 @@ export default function ProfilePage() {
                 >
                   Tentang ReuseMart
                 </Link>
-                {/* <Link
-                  to="/bantuan" // Assuming /bantuan is the route for Pusat Bantuan
-                  className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                >
-                  Pusat Bantuan
-                </Link> */}
+                {/* Dashboard Link - Moved here to be available for all roles with a dashboard path */}
+                {userRole && getDashboardPathForRole(userRole) && (
+                  <button
+                    onClick={() => {
+                      const token = localStorage.getItem('token');
+                      const dashboardPath = getDashboardPathForRole(userRole);
+                      if (token && dashboardPath) {
+                        // Ensure the token is appended correctly for Filament if it expects it in the URL
+                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
+                      } else {
+                        // Fallback or error handling if token/path is missing
+                        // The outer condition should ensure dashboardPath is valid here
+                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
+                          dashboardPath || ''
+                        }`;
+                      }
+                    }}
+                    className="block w-full text-left p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
+                  >
+                    Dashboard
+                  </button>
+                )}
               </div>
             </aside>
 
@@ -406,8 +460,68 @@ export default function ProfilePage() {
                   </div>
                 </>
               )}
+              {userRole === 'penitip' && (
+                <>
+                  <div>
+                    <label className="block font-medium mb-1">Nama Penitip</label>
+                    <input
+                      type="text"
+                      name="NAMA_PENITIP"
+                      value={formData.NAMA_PENITIP || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={`w-full p-2 border rounded-md ${
+                        !isEditing ? 'bg-gray-100' : 'bg-white'
+                      } border-[#CCC]`}
+                    />
+                  </div>
 
-              {(userRole === 'pembeli' || userRole === 'organisasi') && (
+                  <div>
+                    <label className="block font-medium mb-1">Email Penitip</label>
+                    <input
+                      type="email"
+                      name="EMAIL_PENITIP"
+                      value={displayEmail || ''}
+                      readOnly
+                      disabled
+                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email tidak dapat diubah karena digunakan untuk login.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">Nomor Telepon Penitip</label>
+                    <input
+                      type="tel"
+                      name="NO_TELP_PENITIP"
+                      value={formData.NO_TELP_PENITIP || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={`w-full p-2 border rounded-md ${
+                        !isEditing ? 'bg-gray-100' : 'bg-white'
+                      } border-[#CCC]`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">Alamat Penitip</label>
+                    <textarea
+                      name="ALAMAT_PENITIP"
+                      value={formData.ALAMAT_PENITIP || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      rows={3}
+                      className={`w-full p-2 border rounded-md ${
+                        !isEditing ? 'bg-gray-100' : 'bg-white'
+                      } border-[#CCC]`}
+                    />
+                  </div>
+                </>
+              )}
+
+              {(userRole === 'pembeli' || userRole === 'organisasi' || userRole === 'penitip') && (
                 <div className="pt-4 flex justify-end gap-3">
                   <button
                     type="button"

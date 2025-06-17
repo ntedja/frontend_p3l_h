@@ -3,7 +3,8 @@ import type { AxiosError, AxiosResponse } from 'axios';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-export const api = axios.create({ // Export the api instance
+export const api = axios.create({
+  // Export the api instance
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -11,7 +12,8 @@ export const api = axios.create({ // Export the api instance
 });
 
 // Function to set the Authorization header
-export const setAuthToken = (token: string | null) => { // Export setAuthToken
+export const setAuthToken = (token: string | null) => {
+  // Export setAuthToken
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {

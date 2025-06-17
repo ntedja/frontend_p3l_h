@@ -23,6 +23,7 @@ export default function LoginPageOrganisasi() {
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.data));
+      localStorage.setItem('role', 'organisasi');
 
       navigate('/katalogrequest');
     } catch (err: any) {

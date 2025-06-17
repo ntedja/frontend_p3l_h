@@ -39,15 +39,35 @@ export default function HistoryRequest() {
   const loadTransaksis = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token tidak ditemukan');
+      setErrorMessage(''); // Bersihkan error sebelumnya
 
-      const data = await fetchTransaksiDonasi(token);
-      setTransaksis(data);
-      setFilteredTransaksis(data);
-      setErrorMessage('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      }
+
+      // Pastikan user adalah organisasi dan memiliki ID_ORGANISASI
+      // Asumsi user object dari localStorage memiliki ID_ORGANISASI jika rolenya organisasi
+      if (!user || typeof user.ID_ORGANISASI === 'undefined') {
+        setTransaksis([]);
+        setFilteredTransaksis([]);
+        throw new Error('Informasi organisasi tidak valid atau Anda tidak login sebagai organisasi.');
+      }
+      const loggedInOrgId = user.ID_ORGANISASI;
+
+      const allTransactions = await fetchTransaksiDonasi(token);
+      
+      // Filter transaksi untuk organisasi yang sedang login
+      const orgTransactions = allTransactions.filter(
+        (transaksi) => transaksi.ID_ORGANISASI === loggedInOrgId
+      );
+
+      setTransaksis(orgTransactions);
+      setFilteredTransaksis(orgTransactions); // Juga perbarui basis untuk filter pencarian
     } catch (error: any) {
-      setErrorMessage(error.message);
+      setTransaksis([]); // Kosongkan data jika terjadi error
+      setFilteredTransaksis([]);
+      setErrorMessage(error.message || 'Gagal memuat riwayat transaksi.');
     } finally {
       setIsLoading(false);
     }

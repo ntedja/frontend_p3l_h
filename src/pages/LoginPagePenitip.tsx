@@ -23,6 +23,7 @@ export default function LoginPagePenitip() {
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.data));
+      localStorage.setItem('role', 'penitip');
 
       navigate('/');
     } catch (err: any) {
