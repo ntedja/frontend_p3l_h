@@ -269,11 +269,6 @@ export const registerPenitip = async (data: PenitipRegisterData): Promise<ApiRes
   }
 };
 
-interface PenitipLoginData {
-  email: string;
-  password: string;
-}
-
 export const loginPenitip = async (data: PenitipLoginData): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await api.post('/penitip/login', data);

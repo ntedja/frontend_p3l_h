@@ -1,512 +1,291 @@
-import { useEffect, useState } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import defaultAvatar from '../assets/defaultAvatar.png';
-import { api } from '../api/apiAuth'; // Import the centralized API instance
-import type { AxiosError } from 'axios'; // Import AxiosError for better error typing
-import { Link } from 'react-router-dom';
-import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls'; // Adjust path as needed
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import logoImage from '../assets/logo.png';
+import axios from 'axios';
+import { loginOrganisasi, loginPenitip, getErrorMessage, setAuthToken } from '../api/apiAuth';
 
-interface PembeliProfileData {
-  NAMA_PEMBELI?: string;
-  EMAIL_PEMBELI?: string;
-  NO_TELP_PEMBELI?: string;
-  TGL_LAHIR_PEMBELI?: string;
-  POINT_LOYALITAS_PEMBELI?: number;
-}
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-interface PegawaiProfileData {
-  NAMA_PEGAWAI?: string;
-  EMAIL_PEGAWAI?: string;
-  NO_TELP_PEGAWAI?: string;
-  TGL_LAHIR_PEGAWAI?: string;
-}
-
-interface OrganisasiProfileData {
-  NAMA_ORGANISASI?: string;
-  EMAIL_ORGANISASI?: string;
-  NO_TELP_ORGANISASI?: string;
-  ALAMAT_ORGANISASI?: string;
-}
-
-interface PenitipProfileData {
-  NAMA_PENITIP?: string;
-  EMAIL_PENITIP?: string;
-  NO_TELP_PENITIP?: string;
-  ALAMAT_PENITIP?: string;
-}
-
-type ProfileData = PembeliProfileData &
-  OrganisasiProfileData &
-  PenitipProfileData &
-  PegawaiProfileData;
-type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
-
-export default function ProfilePage() {
-  const [formData, setFormData] = useState<ProfileData>({});
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState(''); // For registration success message
+  const [loginRequiredModal, setLoginRequiredModal] = useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
+  // const [userType, setUserType] = useState<'customer_staff' | 'organization'>(() => {
+  //   const state = location.state as { userType?: 'customer_staff' | 'organization' };
+  //   return state?.userType || 'customer_staff';
+  // });
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      setIsLoading(true);
-      setError('');
-      const token = localStorage.getItem('token');
-      const role = localStorage.getItem('role') as UserRole;
-      setUserRole(role);
-
-      if (!token) {
-        setError('Sesi tidak valid. Silakan login kembali.');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!role) {
-        setError('Peran pengguna tidak ditemukan. Silakan login kembali.');
-        setIsLoading(false);
-        return;
-      }
-
-      let relativeApiUrl = '';
-      if (role === 'pembeli') {
-        relativeApiUrl = '/pembeli/me';
-      } else if (role === 'organisasi') {
-        relativeApiUrl = '/organisasi/me';
-      } else if (role === 'pegawai') {
-        relativeApiUrl = '/pegawai/me';
-      } else if (role === 'penitip') {
-        relativeApiUrl = '/penitip/me';
-      } else {
-        setError(`Peran pengguna "${role}" tidak didukung untuk halaman profil.`);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await api.get(relativeApiUrl);
-
-        if (response.data.success) {
-          const userData = response.data.data;
-          if (role === 'pembeli') {
-            setFormData({
-              NAMA_PEMBELI: userData.NAMA_PEMBELI || '',
-              EMAIL_PEMBELI: userData.EMAIL_PEMBELI || '',
-              NO_TELP_PEMBELI: userData.NO_TELP_PEMBELI || '',
-              TGL_LAHIR_PEMBELI: userData.TGL_LAHIR_PEMBELI || '',
-              POINT_LOYALITAS_PEMBELI: userData.POINT_LOYALITAS_PEMBELI || 0,
-            });
-          } else if (role === 'organisasi') {
-            setFormData({
-              NAMA_ORGANISASI: userData.NAMA_ORGANISASI || '',
-              EMAIL_ORGANISASI: userData.EMAIL_ORGANISASI || '',
-              NO_TELP_ORGANISASI: userData.NO_TELP_ORGANISASI || '',
-              ALAMAT_ORGANISASI: userData.ALAMAT_ORGANISASI || '',
-            });
-          } else if (role === 'penitip') {
-            setFormData({
-              NAMA_PENITIP: userData.NAMA_PENITIP || '',
-              EMAIL_PENITIP: userData.EMAIL_PENITIP || '',
-              NO_TELP_PENITIP: userData.NO_TELP_PENITIP || '',
-              ALAMAT_PENITIP: userData.ALAMAT_PENITIP || '',
-            });
-          } else if (role === 'pegawai') {
-            setFormData({
-              NAMA_PEGAWAI: userData.NAMA_PEGAWAI || '',
-              EMAIL_PEGAWAI: userData.EMAIL_PEGAWAI || '',
-              NO_TELP_PEGAWAI: userData.NO_TELP_PEGAWAI || '',
-              TGL_LAHIR_PEGAWAI: userData.TGL_LAHIR_PEGAWAI || '',
-            });
-          }
-        } else {
-          setError('Gagal memuat data profil: ' + (response.data.message || 'Respon tidak sukses'));
-        }
-      } catch (err) {
-        console.error('Gagal mengambil data profil:', err);
-        const axiosError = err as AxiosError<{ message?: string }>;
-        setError(
-          axiosError.response?.data?.message ||
-            axiosError.message ||
-            'Gagal mengambil data profil. Silakan coba lagi nanti.',
-        );
-      } finally {
-        setIsLoading(false);
-      }
+    const state = location.state as {
+      // userType?: 'customer_staff' | 'organization'; // No longer used for selection
+      registrationSuccess?: boolean;
+      email?: string;
+      loginRequiredMessage?: string; // To display messages from other pages
     };
+    // if (state?.userType) { // No longer used for selection
+    //   setUserType(state.userType);
+    // }
+    if (state?.registrationSuccess && state?.email) {
+      setEmail(state.email);
+      setSuccessMsg(`Registrasi berhasil! Silakan login.`);
+      // Clear the state from history to prevent re-triggering and message persisting on refresh
+      navigate(location.pathname, { replace: true, state: {} }); // Use location.pathname
+    } else if (state?.loginRequiredMessage) {
+      setLoginRequiredModal({ show: true, message: state.loginRequiredMessage });
+      navigate(location.pathname, { replace: true, state: {} }); // Clear the message
+    }
+  }, [location.state, navigate, location.pathname]);
 
-    fetchProfileData();
-  }, []); // Empty dependency array to fetch only once
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setErrorMsg('');
+    setSuccessMsg(''); // Clear success message on new login attempt
+    let loggedIn = false;
+    // let specificError = ''; // To store the last specific error if needed for debugging
 
-    if (!userRole) {
-      setError('Peran pengguna tidak valid.');
-      return;
-    }
-
-    let relativeApiUrl = '';
-    let payload: any = {};
-
-    if (userRole === 'pembeli') {
-      relativeApiUrl = '/pembeli/me/update';
-      payload = {
-        NAMA_PEMBELI: formData.NAMA_PEMBELI,
-        NO_TELP_PEMBELI: formData.NO_TELP_PEMBELI,
-      };
-    } else if (userRole === 'organisasi') {
-      relativeApiUrl = '/organisasi/me/update';
-      payload = {
-        NAMA_ORGANISASI: formData.NAMA_ORGANISASI,
-        NO_TELP_ORGANISASI: formData.NO_TELP_ORGANISASI,
-        ALAMAT_ORGANISASI: formData.ALAMAT_ORGANISASI,
-      };
-    } else if (userRole === 'pegawai') {
-      relativeApiUrl = '/pegawai/me/update';
-      payload = {
-        NAMA_PEGAWAI: formData.NAMA_PEGAWAI,
-        NO_TELP_PEGAWAI: formData.NO_TELP_PEGAWAI,
-      };
-    } else if (userRole === 'penitip') {
-      relativeApiUrl = '/penitip/me/update';
-      payload = {
-        NAMA_PENITIP: formData.NAMA_PENITIP,
-        NO_TELP_PENITIP: formData.NO_TELP_PENITIP,
-        ALAMAT_PENITIP: formData.ALAMAT_PENITIP,
-      };
-    } else {
-      setError('Peran pengguna tidak didukung untuk pembaruan profil.');
-      return;
-    }
-
+    // Attempt 1: Login as Pembeli/Pegawai
     try {
-      const response = await api.put(relativeApiUrl, payload);
+      const res = await axios.post('http://127.0.0.1:8000/api/login', {
+        email: email, // The backend for /api/login expects 'email'
+        password: password,
+      });
 
-      if (response.data.success) {
-        alert('Profil berhasil diperbarui.');
-        setIsEditing(false);
-        const updatedUserData = response.data.data;
-        if (updatedUserData) {
-          setFormData((prev) => ({ ...prev, ...updatedUserData }));
-        }
-      } else {
-        setError('Gagal memperbarui profil: ' + (response.data.message || 'Respon tidak sukses'));
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('role', res.data.role);
+      localStorage.setItem('email', email);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setAuthToken(res.data.token); // Explicitly update the shared api instance's auth header
+
+      if (res.data.role === 'pegawai') {
+        localStorage.setItem('jabatan', res.data.jabatan);
       }
-    } catch (err) {
-      console.error('Gagal memperbarui profil:', err);
-      const axiosError = err as AxiosError<{ message?: string }>;
-      const errMsg =
-        axiosError.response?.data?.message ||
-        axiosError.message ||
-        'Gagal memperbarui profil. Silakan coba lagi nanti.';
-      setError(errMsg);
+      console.log('Login berhasil sebagai:', res.data.role);
+      console.log('Nama:', res.data.user.NAMA_PEMBELI || res.data.user.NAMA_PEGAWAI);
+      console.log('Email:', email);
+      console.log('Token:', res.data.token);
+
+      navigate('/');
+      loggedIn = true;
+    } catch (pembeliPegawaiError: any) {
+      // specificError = pembeliPegawaiError.response?.data?.message || 'Gagal login sebagai pelanggan/pegawai.';
+      console.warn(
+        'Pembeli/Pegawai login failed:',
+        pembeliPegawaiError.response?.data?.message || pembeliPegawaiError.message,
+      );
+    }
+
+    // Attempt 2: Login as Organisasi
+    if (!loggedIn) {
+      try {
+        const apiResponse = await loginOrganisasi({
+          EMAIL_ORGANISASI: email,
+          PASSWORD_ORGANISASI: password,
+        });
+        localStorage.setItem('role', 'organisasi');
+        localStorage.setItem('email', email);
+        // loginOrganisasi handles setting 'token' and 'user' in localStorage
+        const orgUser = JSON.parse(localStorage.getItem('user') || '{}');
+        console.log('Login berhasil sebagai: organisasi');
+        console.log('Nama Organisasi:', orgUser.NAMA_ORGANISASI);
+        console.log('Email Organisasi:', email);
+        console.log('Token:', localStorage.getItem('token'));
+
+        navigate('/');
+        loggedIn = true;
+      } catch (organisasiError: any) {
+        // specificError = getErrorMessage(organisasiError as any) || 'Gagal login sebagai organisasi.';
+        console.warn(
+          'Organisasi login failed:',
+          getErrorMessage(organisasiError as any) || organisasiError.message,
+        );
+      }
+    }
+
+    // Attempt 3: Login as Penitip
+    if (!loggedIn) {
+      try {
+        const penitipResponse = await loginPenitip({
+          EMAIL_PENITIP: email,
+          PASSWORD_PENITIP: password,
+        });
+        localStorage.setItem('role', 'penitip');
+        localStorage.setItem('email', email);
+        // loginPenitip handles setting 'token' and 'user' in localStorage
+        const penitipUser = JSON.parse(localStorage.getItem('user') || '{}');
+        console.log('Login berhasil sebagai: penitip');
+        console.log('Nama Penitip:', penitipUser.NAMA_PENITIP);
+        console.log('Email Penitip:', email);
+        console.log('Token:', localStorage.getItem('token'));
+
+        navigate('/'); // Or penitip-specific dashboard
+        loggedIn = true;
+      } catch (penitipError: any) {
+        // specificError = getErrorMessage(penitipError as any) || 'Gagal login sebagai penitip.';
+        console.warn(
+          'Penitip login failed:',
+          getErrorMessage(penitipError as any) || penitipError.message,
+        );
+      }
+    }
+
+    if (!loggedIn) {
+      setErrorMsg('Login gagal. Email atau password salah, atau akun tidak ditemukan.');
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32]">
-        <Header />
-        <main className="max-w-[1300px] mx-auto px-4 sm:px-6 py-8">
-          <div className="text-center py-12">Memuat data profil...</div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  const displayName =
-    userRole === 'pembeli'
-      ? formData.NAMA_PEMBELI
-      : userRole === 'organisasi'
-      ? formData.NAMA_ORGANISASI
-      : userRole === 'pegawai'
-      ? formData.NAMA_PEGAWAI
-      : userRole === 'penitip'
-      ? formData.NAMA_PENITIP
-      : 'Pengguna';
-  const displayEmail =
-    userRole === 'pembeli'
-      ? formData.EMAIL_PEMBELI
-      : userRole === 'organisasi'
-      ? formData.EMAIL_ORGANISASI
-      : userRole === 'pegawai'
-      ? formData.EMAIL_PEGAWAI
-      : userRole === 'penitip'
-      ? formData.EMAIL_PENITIP
-      : '';
 
   return (
-    <div className="bg-[#FFF7E2] min-h-screen text-[#1E2B32]">
-      <Header />
-      <main className="max-w-[1300px] mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold mb-6">Profil Saya</h1>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <div className="min-h-screen bg-[#FFF7E2] text-[#1E2B32] flex flex-col">
+      {/* Header */}
+      <div className="bg-white py-7 px-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-2xl font-bold text-[#48635B] cursor-pointer"
+          >
+            <img src={logoImage} alt="Logo" className="w-17 h-10" />
           </div>
-        )}
+          <h1 className="text-2xl font-semibold text-black">Log in</h1>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="bg-white rounded-xl shadow p-6 md:flex md:flex-row gap-8">
-            <aside className="w-full md:w-1/4 mb-6 md:mb-0">
-              <div className="flex flex-col items-center mb-6">
-                <img
-                  src={defaultAvatar}
-                  alt="Avatar"
-                  className="w-20 h-20 rounded-full object-cover mb-2"
+      {/* Konten */}
+      <div className="flex-1 bg-[#FFF7E2] flex items-center justify-center px-4">
+        <div className="max-w-6xl w-full flex flex-col md:flex-row justify-between items-center gap-14 py-16">
+          {/* Kiri */}
+          <div className="text-center md:text-left flex-1">
+            <img src={logoImage} alt="ReuseMart Logo" className="w-80 h-70 mx-auto md:mx-0" />
+            <h1 className="text-[#48635B] text-xl md:text-2xl font-bold mt-6">
+              Jual Beli Barang Bekas di ReuseMart
+            </h1>
+            <p className="text-base mt-4 text-[#405C53] max-w-md mx-auto md:mx-0">
+              Gabung dan rasakan kemudahan bertransaksi di ReuseMart, platform konsinyasi barang
+              bekas terpercaya.
+            </p>
+          </div>
+
+          {/* Form Login */}
+          <div className="bg-white rounded-2xl border border-[#E1DBC0] shadow-md p-10 w-full max-w-md">
+            <h2 className="text-2xl font-bold text-center mb-2 text-[#3E5B50]">Login Akun</h2>
+            {/* <p className="text-sm text-center mb-6 text-gray-600">
+              Masuk sebagai {userType === 'customer_staff' ? 'Pelanggan/Pegawai' : 'Organisasi'} // Removed
+            </p>
+            <p className="text-sm text-center mb-6 text-gray-600">Silakan masukkan email dan password Anda.</p>
+
+            {/* <div className="flex justify-center space-x-4 mb-5"> // Radio buttons removed
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userType"
+                  value="customer_staff"
+                  checked={userType === 'customer_staff'}
+                  onChange={() => setUserType('customer_staff')}
+                  className="form-radio text-[#3E5B50] focus:ring-[#3E5B50]"
                 />
-                <h3 className="text-lg font-semibold text-center">{displayName || 'Pengguna'}</h3>
-              </div>
+                <span className="text-sm">Pelanggan/Pegawai</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userType"
+                  value="organization"
+                  checked={userType === 'organization'}
+                  onChange={() => setUserType('organization')}
+                  className="form-radio text-[#3E5B50] focus:ring-[#3E5B50]"
+                />
+                <span className="text-sm">Organisasi</span>
+              </label>
+            </div> */}
 
-              {userRole === 'pembeli' && typeof formData.POINT_LOYALITAS_PEMBELI === 'number' && (
-                <div className="bg-[#F9F9F9] p-4 rounded-lg mb-6 w-full text-center">
-                  <p className="text-sm text-gray-600">Poin</p>
-                  <p className="text-lg font-semibold text-[#1E2B32]">
-                    {formData.POINT_LOYALITAS_PEMBELI.toLocaleString('id-ID')}
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Link
-                  to="/profile"
-                  className="block p-2 text-[#1E2B32] bg-[#F0F0F0] rounded-md transition"
-                >
-                  Profile
-                </Link>
-                {userRole === 'pembeli' && (
-                  <>
-                    <Link
-                      to="/alamat"
-                      className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                    >
-                      Alamat Saya
-                    </Link>
-                    <Link
-                      to="/riwayat-pesanan"
-                      className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                    >
-                      Riwayat Pesanan
-                    </Link>
-                  </>
-                )}
-                {userRole === 'organisasi' && (
-                  <>
-                    <Link
-                      to="/requestdonasi"
-                      className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                    >
-                      Request Donasi
-                    </Link>
-                    <Link
-                      to="/historyrequest"
-                      className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                    >
-                      Riwayat Request Donasi
-                    </Link>
-                  </>
-                )}
-                <Link
-                  to="/tentang-reusemart"
-                  className="block p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                >
-                  Tentang ReuseMart
-                </Link>
-                {userRole && getDashboardPathForRole(userRole) && (
-                  <button
-                    onClick={() => {
-                      const token = localStorage.getItem('token');
-                      const dashboardPath = getDashboardPathForRole(userRole);
-                      if (token && dashboardPath) {
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
-                      } else {
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
-                          dashboardPath || ''
-                        }`;
-                      }
-                    }}
-                    className="block w-full text-left p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
-                  >
-                    Dashboard
-                  </button>
-                )}
-              </div>
-            </aside>
-
-            {/* Formulir Profil */}
-            <section className="w-full md:w-3/4 space-y-4">
-              {userRole === 'pembeli' && (
-                <>
-                  <div>
-                    <label className="block font-medium mb-1">Nama</label>
-                    <input
-                      type="text"
-                      name="NAMA_PEMBELI"
-                      value={formData.NAMA_PEMBELI || ''}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full p-2 border rounded-md ${
-                        !isEditing ? 'bg-gray-100' : 'bg-white'
-                      } border-[#CCC]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Email</label>
-                    <input
-                      type="email"
-                      name="EMAIL_PEMBELI"
-                      value={displayEmail || ''}
-                      readOnly
-                      disabled
-                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Email tidak dapat diubah karena digunakan untuk login.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Nomor Telepon</label>
-                    <input
-                      type="tel"
-                      name="NO_TELP_PEMBELI"
-                      value={formData.NO_TELP_PEMBELI || ''}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full p-2 border rounded-md ${
-                        !isEditing ? 'bg-gray-100' : 'bg-white'
-                      } border-[#CCC]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Tanggal Lahir</label>
-                    <input
-                      type="text"
-                      name="TGL_LAHIR_PEMBELI"
-                      value={
-                        formData.TGL_LAHIR_PEMBELI
-                          ? new Date(formData.TGL_LAHIR_PEMBELI).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                            })
-                          : ''
-                      }
-                      readOnly
-                      disabled
-                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Tanggal lahir tidak dapat diubah setelah verifikasi KYC.
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {userRole === 'organisasi' && (
-                <>
-                  <div>
-                    <label className="block font-medium mb-1">Nama Organisasi</label>
-                    <input
-                      type="text"
-                      name="NAMA_ORGANISASI"
-                      value={formData.NAMA_ORGANISASI || ''}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full p-2 border rounded-md ${
-                        !isEditing ? 'bg-gray-100' : 'bg-white'
-                      } border-[#CCC]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Email Organisasi</label>
-                    <input
-                      type="email"
-                      name="EMAIL_ORGANISASI"
-                      value={displayEmail || ''}
-                      readOnly
-                      disabled
-                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Email tidak dapat diubah karena digunakan untuk login.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Nomor Telepon Organisasi</label>
-                    <input
-                      type="tel"
-                      name="NO_TELP_ORGANISASI"
-                      value={formData.NO_TELP_ORGANISASI || ''}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full p-2 border rounded-md ${
-                        !isEditing ? 'bg-gray-100' : 'bg-white'
-                      } border-[#CCC]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-1">Alamat Organisasi</label>
-                    <textarea
-                      name="ALAMAT_ORGANISASI"
-                      value={formData.ALAMAT_ORGANISASI || ''}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      rows={3}
-                      className={`w-full p-2 border rounded-md ${
-                        !isEditing ? 'bg-gray-100' : 'bg-white'
-                      } border-[#CCC]`}
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Repeat for other roles (pegawai and penitip) */}
-
-              {(userRole === 'pembeli' || userRole === 'organisasi' || userRole === 'penitip') && (
-                <div className="pt-4 flex justify-end gap-3">
+            <form className="space-y-5" onSubmit={handleLogin}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
+              />
+              <div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pr-12"
+                  />
                   <button
                     type="button"
-                    onClick={() => setIsEditing(!isEditing)}
-                    className={`${
-                      isEditing ? 'bg-gray-500' : 'bg-[#48635B]'
-                    } text-white px-6 py-2 rounded-md hover:opacity-90`}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3E5B50]"
                   >
-                    {isEditing ? 'Batal Edit' : 'Edit Profil'}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-
-                  {isEditing && (
-                    <button
-                      type="submit"
-                      className="bg-[#48635B] text-white px-6 py-2 rounded-md hover:bg-[#374b45]"
-                    >
-                      Simpan Perubahan
-                    </button>
-                  )}
                 </div>
-              )}
-            </section>
+
+                {/* Forgot Password Link */}
+                <div className="flex justify-end mt-2">
+                  <a href="/forgot-password" className="text-sm text-[#3E5B50] hover:underline">
+                    Lupa password?
+                  </a>
+                </div>
+              </div>
+
+              {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
+              {successMsg && <p className="text-green-500 text-sm">{successMsg}</p>}
+
+              <button
+                type="submit"
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-3 rounded-full shadow-md text-sm"
+              >
+                Log In
+              </button>
+            </form>
+
+            <p className="text-sm text-center mt-6 text-[#2F3F3A]">
+              Belum punya akun?{' '}
+              <a href={'/register'} className="text-[#3E5B50] font-semibold hover:underline">
+                Daftar
+              </a>
+              {' / '}
+              <a
+                href={'/registerorganisasi'}
+                className="text-[#3E5B50] font-semibold hover:underline"
+              >
+                Daftar Organisasi
+              </a>
+            </p>
           </div>
-        </form>
-      </main>
-      <Footer />
+        </div>
+      </div>
+
+      {/* Login Required Modal */}
+      {loginRequiredModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md text-center">
+            <h3 className="text-xl font-semibold text-[#3E5B50] mb-4">Perhatian</h3>
+            <p className="text-gray-700 mb-6">{loginRequiredModal.message}</p>
+            <button
+              onClick={() => setLoginRequiredModal({ show: false, message: '' })}
+              className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="bg-white py-11" />
     </div>
   );
 }
