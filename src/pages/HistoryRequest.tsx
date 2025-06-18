@@ -39,15 +39,35 @@ export default function HistoryRequest() {
   const loadTransaksis = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token tidak ditemukan');
+      setErrorMessage(''); // Bersihkan error sebelumnya
 
-      const data = await fetchTransaksiDonasi(token);
-      setTransaksis(data);
-      setFilteredTransaksis(data);
-      setErrorMessage('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      }
+
+      // Pastikan user adalah organisasi dan memiliki ID_ORGANISASI
+      // Asumsi user object dari localStorage memiliki ID_ORGANISASI jika rolenya organisasi
+      if (!user || typeof user.ID_ORGANISASI === 'undefined') {
+        setTransaksis([]);
+        setFilteredTransaksis([]);
+        throw new Error('Informasi organisasi tidak valid atau Anda tidak login sebagai organisasi.');
+      }
+      const loggedInOrgId = user.ID_ORGANISASI;
+
+      const allTransactions = await fetchTransaksiDonasi(token);
+      
+      // Filter transaksi untuk organisasi yang sedang login
+      const orgTransactions = allTransactions.filter(
+        (transaksi) => transaksi.ID_ORGANISASI === loggedInOrgId
+      );
+
+      setTransaksis(orgTransactions);
+      setFilteredTransaksis(orgTransactions); // Juga perbarui basis untuk filter pencarian
     } catch (error: any) {
-      setErrorMessage(error.message);
+      setTransaksis([]); // Kosongkan data jika terjadi error
+      setFilteredTransaksis([]);
+      setErrorMessage(error.message || 'Gagal memuat riwayat transaksi.');
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +84,13 @@ export default function HistoryRequest() {
     if (searchTerm.trim() === '') {
       setFilteredTransaksis(transaksis);
     } else {
-      const filtered = transaksis.filter((transaksi) =>
-        transaksi.request?.barang?.NAMA_BARANG.toLowerCase().includes(searchTerm.toLowerCase()),
+      const lowercasedSearchTerm = searchTerm.toLowerCase();
+      const filtered = transaksis.filter(
+        (transaksi) =>
+          transaksi.request?.barang?.NAMA_BARANG.toLowerCase().includes(lowercasedSearchTerm) ||
+          formatDate(transaksi.TGL_DONASI).toLowerCase().includes(lowercasedSearchTerm) ||
+          (transaksi.request?.DESKRIPSI_REQUEST || '').toLowerCase().includes(lowercasedSearchTerm) ||
+          (transaksi.PENERIMA || '').toLowerCase().includes(lowercasedSearchTerm)
       );
       setFilteredTransaksis(filtered);
     }
@@ -185,12 +210,12 @@ export default function HistoryRequest() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Cari berdasarkan nama barang..."
-                className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#48635B]"
+                placeholder="Cari transaksi..."
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm pl-10 focus:ring-2 focus:ring-[#48635B] focus:outline-none"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
-              <div className="absolute left-3 top-2.5 text-gray-400">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -214,7 +239,7 @@ export default function HistoryRequest() {
               <p className="text-gray-600">
                 {searchTerm.trim() === ''
                   ? 'Belum ada riwayat transaksi donasi'
-                  : `Tidak ditemukan transaksi dengan nama barang "${searchTerm}"`}
+                  : `Tidak ditemukan transaksi yang cocok dengan "${searchTerm}"`}
               </p>
             </div>
           ) : (
@@ -242,9 +267,6 @@ export default function HistoryRequest() {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                         Penerima
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Aksi
                       </th>
                     </tr>
                   </thead>
@@ -287,24 +309,6 @@ export default function HistoryRequest() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {transaksi.PENERIMA || '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            {!isPegawai && (
-                              <>
-                                <button
-                                  onClick={() => handleEdit(transaksi)}
-                                  className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(transaksi.ID_TRANSAKSI)}
-                                  className="text-red-600 hover:text-red-900"
-                                >
-                                  Hapus
-                                </button>
-                              </>
-                            )}
                           </td>
                         </motion.tr>
                       );

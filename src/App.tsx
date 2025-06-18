@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Router } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -23,6 +23,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import KonfirmasiPesananPage from './pages/KonfirmasiPesananPage';
 import PembayaranPage from './pages/PembayaranPage';
 import CartPage from './pages/CartPage';
+import RequestPage from './pages/RequestPage';
 
 export default function App() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/checkout/:id" element={<CheckoutPage />} />
         <Route path="/konfirmasi-pesanan/:orderId" element={<KonfirmasiPesananPage />} />
         <Route path="/pembayaran/:orderId" element={<PembayaranPage />} />
+        <Route path="/requestdonasi" element={<RequestPage />} />
         <Route path="/cart" element={<CartPage />} />
       </Routes>
     </BrowserRouter>

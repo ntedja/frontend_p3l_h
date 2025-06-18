@@ -1,20 +1,28 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'http://192.168.18.73:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-const api = axios.create({
+export const api = axios.create({
+  // Export the api instance
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Set token jika ada
-const token = localStorage.getItem('token');
-if (token) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
+// Function to set the Authorization header
+export const setAuthToken = (token: string | null) => {
+  // Export setAuthToken
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+// Initialize the Authorization header from localStorage
+setAuthToken(localStorage.getItem('token'));
 
 // ========================
 // INTERFACES
@@ -110,7 +118,7 @@ export const signIn = async (data: LoginData): Promise<ApiResponse> => {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user || response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setAuthToken(response.data.token); // Update Authorization header
     }
 
     return response.data;
@@ -134,9 +142,7 @@ export const signOut = async (): Promise<void> => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
 
-    if (api.defaults.headers) {
-      delete api.defaults.headers.common['Authorization'];
-    }
+    setAuthToken(null);
 
     localStorage.clear();
     sessionStorage.clear();
@@ -153,6 +159,7 @@ export const pegawaiSignIn = async (data: { EMAIL_PEGAWAI: string; PASSWORD_PEGA
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('pegawai', JSON.stringify(response.data.pegawai || response.data.data));
+      setAuthToken(response.data.token); // Update Authorization header for the shared api instance
     }
     return response.data;
   } catch (error: any) {
@@ -175,7 +182,7 @@ export const registerOrganisasi = async (data: OrganisasiRegisterData): Promise<
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setAuthToken(response.data.token); // Update Authorization header
     }
 
     return response.data;
@@ -197,7 +204,7 @@ export const loginOrganisasi = async (data: OrganisasiLoginData): Promise<ApiRes
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setAuthToken(response.data.token); // Update Authorization header
     }
 
     return response.data;
@@ -247,7 +254,7 @@ export const registerPenitip = async (data: PenitipRegisterData): Promise<ApiRes
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setAuthToken(response.data.token);
     }
 
     return response.data;
@@ -269,12 +276,12 @@ interface PenitipLoginData {
 
 export const loginPenitip = async (data: PenitipLoginData): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await api.post('/login', data);
+    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/login', data);
 
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user || response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      setAuthToken(response.data.token);
     }
 
     return response.data;
@@ -298,8 +305,6 @@ export const logoutPenitip = async (): Promise<void> => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
 
-    if (api.defaults.headers) {
-      delete api.defaults.headers.common['Authorization'];
-    }
+    setAuthToken(null);
   }
 };

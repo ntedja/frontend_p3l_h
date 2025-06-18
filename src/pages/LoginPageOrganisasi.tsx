@@ -16,13 +16,14 @@ export default function LoginPageOrganisasi() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://192.168.18.73:8000/api/organisasi/login', {
+      const res = await axios.post('http://127.0.0.1:8000/api/organisasi/login', {
         EMAIL_ORGANISASI: email,
         PASSWORD_ORGANISASI: password,
       });
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.data));
+      localStorage.setItem('role', 'organisasi');
 
       navigate('/katalogrequest');
     } catch (err: any) {
