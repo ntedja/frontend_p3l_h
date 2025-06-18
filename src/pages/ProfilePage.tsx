@@ -15,6 +15,13 @@ interface PembeliProfileData {
   POINT_LOYALITAS_PEMBELI?: number;
 }
 
+interface PegawaiProfileData {
+  NAMA_PEGAWAI?: string;
+  EMAIL_PEGAWAI?: string;
+  NO_TELP_PEGAWAI?: string;
+  TGL_LAHIR_PEGAWAI?: string;
+}
+
 interface OrganisasiProfileData {
   NAMA_ORGANISASI?: string;
   EMAIL_ORGANISASI?: string;
@@ -29,7 +36,7 @@ interface PenitipProfileData {
   ALAMAT_PENITIP?: string;
 }
 
-type ProfileData = PembeliProfileData & OrganisasiProfileData & PenitipProfileData;
+type ProfileData = PembeliProfileData & OrganisasiProfileData & PenitipProfileData & PegawaiProfileData;
 type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 
 export default function ProfilePage() {
@@ -64,7 +71,9 @@ export default function ProfilePage() {
         relativeApiUrl = '/pembeli/me';
       } else if (role === 'organisasi') {
         relativeApiUrl = '/organisasi/me';
-      } else if (role === 'penitip') {
+      } else if (role === 'pegawai') {
+        relativeApiUrl = '/pegawai/me';
+      }  else if (role === 'penitip') {
         relativeApiUrl = '/penitip/me';
       } else {
         setError(`Peran pengguna "${role}" tidak didukung untuk halaman profil ini.`);
@@ -99,7 +108,14 @@ export default function ProfilePage() {
               NO_TELP_PENITIP: userData.NO_TELP_PENITIP || '',
               ALAMAT_PENITIP: userData.ALAMAT_PENITIP || '',
             });
-          }
+          } else if (role === 'pegawai') {
+           setFormData({
+             NAMA_PEGAWAI: userData.NAMA_PEGAWAI || '',
+             EMAIL_PEGAWAI: userData.EMAIL_PEGAWAI || '',
+             NO_TELP_PEGAWAI: userData.NO_TELP_PEGAWAI || '',
+             TGL_LAHIR_PEGAWAI: userData.TGL_LAHIR_PEGAWAI || '',
+           });
+         }
         } else {
           setError('Gagal memuat data profil: ' + (response.data.message || 'Respon tidak sukses'));
         }
@@ -158,7 +174,13 @@ export default function ProfilePage() {
         NO_TELP_ORGANISASI: formData.NO_TELP_ORGANISASI,
         ALAMAT_ORGANISASI: formData.ALAMAT_ORGANISASI,
       };
-    } else if (userRole === 'penitip') {
+    } else if (userRole === 'pegawai') {
+       relativeApiUrl = '/pegawai/me/update';
+       payload = {
+         NAMA_PEGAWAI: formData.NAMA_PEGAWAI,
+         NO_TELP_PEGAWAI: formData.NO_TELP_PEGAWAI,
+       };
+     } else if (userRole === 'penitip') {
       relativeApiUrl = '/penitip/me/update';
       payload = {
         NAMA_PENITIP: formData.NAMA_PENITIP,
@@ -212,14 +234,18 @@ export default function ProfilePage() {
       ? formData.NAMA_PEMBELI
       : userRole === 'organisasi'
       ? formData.NAMA_ORGANISASI
+      : userRole === 'pegawai'
+      ? formData.NAMA_PEGAWAI
       : userRole === 'penitip'
       ? formData.NAMA_PENITIP
       : 'Pengguna';
-  const displayEmail =
-    userRole === 'pembeli'
+ const displayEmail =
+   userRole === 'pembeli'
       ? formData.EMAIL_PEMBELI
       : userRole === 'organisasi'
       ? formData.EMAIL_ORGANISASI
+      :  userRole === 'pegawai'
+      ? formData.EMAIL_PEGAWAI
       : userRole === 'penitip'
       ? formData.EMAIL_PENITIP
       : '';
@@ -460,6 +486,75 @@ export default function ProfilePage() {
                   </div>
                 </>
               )}
+              {userRole === 'pegawai' && (
+               <>
+                 <div>
+                   <label className="block font-medium mb-1">Nama Pegawai</label>
+                   <input
+                     type="text"
+                     name="NAMA_PEGAWAI"
+                     value={formData.NAMA_PEGAWAI || ''}
+                     onChange={handleChange}
+                     disabled={!isEditing}
+                     className={`w-full p-2 border rounded-md ${
+                       !isEditing ? 'bg-gray-100' : 'bg-white'
+                     } border-[#CCC]`}
+                   />
+                 </div>
+   
+                 <div>
+                   <label className="block font-medium mb-1">Email Pegawai</label>
+                   <input
+                     type="email"
+                     name="EMAIL_PEGAWAI"
+                     value={displayEmail || ''}
+                     readOnly
+                     disabled
+                     className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
+                   />
+                   <p className="text-xs text-gray-500 mt-1">
+                     Email tidak dapat diubah karena digunakan untuk login.
+                   </p>
+                 </div>
+   
+                 <div>
+                   <label className="block font-medium mb-1">Nomor Telepon Pegawai</label>
+                   <input
+                     type="tel"
+                     name="NO_TELP_PEGAWAI"
+                     value={formData.NO_TELP_PEGAWAI || ''}
+                     onChange={handleChange}
+                     disabled={!isEditing}
+                     className={`w-full p-2 border rounded-md ${
+                       !isEditing ? 'bg-gray-100' : 'bg-white'
+                     } border-[#CCC]`}
+                   />
+                 </div>
+   
+                 <div>
+                   <label className="block font-medium mb-1">Tanggal Lahir Pegawai</label>
+                   <input
+                     type="text"
+                     name="TGL_LAHIR_PEGAWAI"
+                     value={
+                       formData.TGL_LAHIR_PEGAWAI
+                         ? new Date(formData.TGL_LAHIR_PEGAWAI).toLocaleDateString('id-ID', {
+                             day: 'numeric',
+                             month: 'long',
+                             year: 'numeric',
+                           })
+                         : ''
+                     }
+                     readOnly
+                     disabled
+                     className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
+                   />
+                   <p className="text-sm text-gray-500 mt-1">
+                     Tanggal lahir tidak dapat diubah setelah verifikasi KYC.
+                   </p>
+                 </div>
+               </>
+             )}
               {userRole === 'penitip' && (
                 <>
                   <div>

@@ -3,7 +3,15 @@ export type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 export const FILAMENT_DASHBOARD_BASE_URL = 'http://127.0.0.1:8000';
 
 export const getDashboardPathForRole = (role: UserRole): string | null => {
+  if (role === 'pegawai') {
+    const jabatan = localStorage.getItem('jabatan');
+    if (jabatan && (jabatan.toLowerCase() === 'owner' || jabatan.toLowerCase() === 'admin')) {
+      return '/admin';
+    }
+  }
+
   if (!role) return null;
+
   switch (role) {
     case 'pembeli':
       return '/pembeli';
@@ -12,7 +20,7 @@ export const getDashboardPathForRole = (role: UserRole): string | null => {
     case 'penitip':
       return '/penitip';
     case 'pegawai':
-      return '/admin';
+      return '/pegawai';
     default:
       console.warn('Unhandled role for dashboard path:', role);
       return null;
