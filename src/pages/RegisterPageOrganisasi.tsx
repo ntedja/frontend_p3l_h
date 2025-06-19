@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
-import { signUp, getErrorMessage } from '../api/apiAuth';
+import { registerOrganisasi, getErrorMessage } from '../api/apiAuth';
 
-export default function RegisterPage() {
+export default function RegisterPageOrganisasi() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    NAMA_PEMBELI: '',
-    TGL_LAHIR_PEMBELI: '',
-    NO_TELP_PEMBELI: '',
-    EMAIL_PEMBELI: '',
-    PASSWORD_PEMBELI: '',
-    PASSWORD_PEMBELI_confirmation: '',
+    NAMA_ORGANISASI: '',
+    ALAMAT_ORGANISASI: '',
+    NO_TELP_ORGANISASI: '',
+    EMAIL_ORGANISASI: '',
+    PASSWORD_ORGANISASI: '',
+    PASSWORD_ORGANISASI_confirmation: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -34,29 +34,28 @@ export default function RegisterPage() {
     setIsLoading(true);
     setErrorMessage('');
 
-    // Validasi sederhana di frontend
-    if (formData.PASSWORD_PEMBELI !== formData.PASSWORD_PEMBELI_confirmation) {
+    // Client-side validation
+    if (formData.PASSWORD_ORGANISASI !== formData.PASSWORD_ORGANISASI_confirmation) {
       setErrorMessage('Konfirmasi password tidak cocok');
       setIsLoading(false);
       return;
     }
 
-    if (formData.PASSWORD_PEMBELI.length < 8) {
+    if (formData.PASSWORD_ORGANISASI.length < 8) {
       setErrorMessage('Password minimal 8 karakter');
       setIsLoading(false);
       return;
     }
 
     try {
-      const result = await signUp(formData);
+      const result = await registerOrganisasi(formData);
 
       if (result.success) {
-        // Registrasi berhasil
+        // Registration successful, navigate to login with success message and preselect user type
         navigate('/login', {
-          state: { registrationSuccess: true, email: formData.EMAIL_PEMBELI },
+          state: { registrationSuccess: true, email: formData.EMAIL_ORGANISASI, userType: 'organization' },
         });
       } else {
-        // Registrasi gagal
         setErrorMessage(getErrorMessage(result));
       }
     } catch (error) {
@@ -77,7 +76,7 @@ export default function RegisterPage() {
           >
             <img src={logoImage} alt="Logo" className="w-17 h-10" />
           </div>
-          <h1 className="text-2xl font-semibold text-black">Register</h1>
+          <h1 className="text-2xl font-semibold text-black">Register Organisasi</h1>
         </div>
       </div>
 
@@ -98,31 +97,42 @@ export default function RegisterPage() {
 
           {/* Kanan */}
           <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md border border-[#E1DBC0]">
-            <h2 className="text-2xl font-bold text-center mb-6 text-[#3E5B50]">Register Pembeli</h2>
+            <h2 className="text-2xl font-bold text-center mb-6 text-[#3E5B50]">
+              Register Organisasi
+            </h2>
             <form className="space-y-5" onSubmit={handleSubmit}>
               <input
                 type="text"
-                name="NAMA_PEMBELI"
-                placeholder="Nama Lengkap"
-                value={formData.NAMA_PEMBELI}
+                name="NAMA_ORGANISASI"
+                placeholder="Nama Organisasi"
+                value={formData.NAMA_ORGANISASI}
                 onChange={handleChange}
                 className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
               <input
-                type="date"
-                name="TGL_LAHIR_PEMBELI"
-                placeholder="Tanggal Lahir"
-                value={formData.TGL_LAHIR_PEMBELI}
+                type="text"
+                name="ALAMAT_ORGANISASI"
+                placeholder="Alamat Organisasi"
+                value={formData.ALAMAT_ORGANISASI}
+                onChange={handleChange}
+                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
+                required
+              />
+              <input
+                type="tel"
+                name="NO_TELP_ORGANISASI"
+                placeholder="No. Telepon"
+                value={formData.NO_TELP_ORGANISASI}
                 onChange={handleChange}
                 className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
               />
               <input
                 type="email"
-                name="EMAIL_PEMBELI"
+                name="EMAIL_ORGANISASI"
                 placeholder="Email"
-                value={formData.EMAIL_PEMBELI}
+                value={formData.EMAIL_ORGANISASI}
                 onChange={handleChange}
                 className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                 required
@@ -130,9 +140,9 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  name="PASSWORD_PEMBELI"
+                  name="PASSWORD_ORGANISASI"
                   placeholder="Password"
-                  value={formData.PASSWORD_PEMBELI}
+                  value={formData.PASSWORD_ORGANISASI}
                   onChange={handleChange}
                   className="w-full pr-12 border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                   required
@@ -148,9 +158,9 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   type={showConfirm ? 'text' : 'password'}
-                  name="PASSWORD_PEMBELI_confirmation"
+                  name="PASSWORD_ORGANISASI_confirmation"
                   placeholder="Konfirmasi Password"
-                  value={formData.PASSWORD_PEMBELI_confirmation}
+                  value={formData.PASSWORD_ORGANISASI_confirmation}
                   onChange={handleChange}
                   className="w-full pr-12 border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
                   required
@@ -163,15 +173,6 @@ export default function RegisterPage() {
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <input
-                type="tel"
-                name="NO_TELP_PEMBELI"
-                placeholder="No. HP"
-                value={formData.NO_TELP_PEMBELI}
-                onChange={handleChange}
-                className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2.5 text-sm"
-                required
-              />
 
               {errorMessage && <p className="text-sm text-red-600 -mt-2">{errorMessage}</p>}
 
@@ -187,8 +188,8 @@ export default function RegisterPage() {
             </form>
 
             <p className="text-sm text-center mt-6 text-[#2F3F3A]">
-              Punya akun pembeli?{' '}
-              <a href="/login" className="text-[#3E5B50] font-semibold hover:underline">
+              Punya akun organisasi?{' '}
+              <a href="/loginorganisasi" className="text-[#3E5B50] font-semibold hover:underline">
                 Log In
               </a>
             </p>

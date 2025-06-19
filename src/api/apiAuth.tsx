@@ -1,25 +1,34 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-const api = axios.create({
+export const api = axios.create({
+  // Export the api instance
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Set token jika ada
-const token = localStorage.getItem('token');
-if (token) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
+// Function to set the Authorization header
+export const setAuthToken = (token: string | null) => {
+  // Export setAuthToken
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+// Initialize the Authorization header from localStorage
+setAuthToken(localStorage.getItem('token'));
 
 // ========================
 // INTERFACES
 // ========================
 
+//Pembeli
 interface PembeliRegisterData {
   NAMA_PEMBELI: string;
   TGL_LAHIR_PEMBELI: string;
@@ -34,6 +43,20 @@ interface LoginData {
   PASSWORD_PEMBELI: string;
 }
 
+interface PenitipRegisterData {
+  NAMA_PENITIP: string;
+  ALAMAT_PENITIP: string;
+  NO_TELP_PENITIP: string;
+  EMAIL_PENITIP: string;
+  PASSWORD_PENITIP: string;
+  PASSWORD_PENITIP_confirmation: string;
+}
+
+interface PenitipLoginData {
+  EMAIL_PENITIP: string;
+  PASSWORD_PENITIP: string;
+}
+
 interface ApiResponse {
   success: boolean;
   message: string;
@@ -41,6 +64,21 @@ interface ApiResponse {
   token?: string;
   user?: any;
   errors?: Record<string, string[]>;
+}
+
+//Organisasi
+interface OrganisasiRegisterData {
+  NAMA_ORGANISASI: string;
+  ALAMAT_ORGANISASI: string;
+  NO_TELP_ORGANISASI: string;
+  EMAIL_ORGANISASI: string;
+  PASSWORD_ORGANISASI: string;
+  PASSWORD_ORGANISASI_confirmation: string;
+}
+
+interface OrganisasiLoginData {
+  EMAIL_ORGANISASI: string;
+  PASSWORD_ORGANISASI: string;
 }
 
 // ========================
@@ -80,7 +118,7 @@ export const signIn = async (data: LoginData): Promise<ApiResponse> => {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user || response.data.data));
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setAuthToken(response.data.token); // Update Authorization header
     }
 
     return response.data;
@@ -104,9 +142,7 @@ export const signOut = async (): Promise<void> => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
 
-    if (api.defaults.headers) {
-      delete api.defaults.headers.common['Authorization'];
-    }
+    setAuthToken(null);
 
     localStorage.clear();
     sessionStorage.clear();
@@ -123,12 +159,61 @@ export const pegawaiSignIn = async (data: { EMAIL_PEGAWAI: string; PASSWORD_PEGA
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('pegawai', JSON.stringify(response.data.pegawai || response.data.data));
+      setAuthToken(response.data.token); // Update Authorization header for the shared api instance
     }
     return response.data;
   } catch (error: any) {
     throw (
       error.response?.data || {
         message: 'Terjadi kesalahan saat login pegawai',
+      }
+    );
+  }
+};
+
+// ========================
+// ORGANISASI
+// ========================
+
+export const registerOrganisasi = async (data: OrganisasiRegisterData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/organisasi/register', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      setAuthToken(response.data.token); // Update Authorization header
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat registrasi organisasi',
+      }
+    );
+  }
+};
+
+export const loginOrganisasi = async (data: OrganisasiLoginData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/organisasi/login', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      setAuthToken(response.data.token); // Update Authorization header
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat login organisasi',
       }
     );
   }
@@ -160,4 +245,61 @@ export const getErrorMessage = (error: ApiResponse): string => {
     return Object.values(error.errors).flat().join(', ');
   }
   return error.message || 'Terjadi kesalahan';
+};
+
+export const registerPenitip = async (data: PenitipRegisterData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/register', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      setAuthToken(response.data.token);
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat registrasi penitip',
+      }
+    );
+  }
+};
+
+export const loginPenitip = async (data: PenitipLoginData): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await api.post('/penitip/login', data);
+
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data));
+      setAuthToken(response.data.token);
+    }
+
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiResponse>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Terjadi kesalahan saat login penitip',
+      }
+    );
+  }
+};
+
+export const logoutPenitip = async (): Promise<void> => {
+  try {
+    await api.post('/penitip/logout');
+  } catch (error) {
+    console.error('Penitip logout error:', error);
+  } finally {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    setAuthToken(null);
+  }
 };

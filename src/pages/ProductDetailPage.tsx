@@ -1,40 +1,199 @@
-import { useState } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import macbookImage from "../assets/images.png";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { StarIcon } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
-const productImages = [
-  macbookImage,
-  "https://dummyimage.com/300x300/000/fff&text=Image+2",
-  "https://dummyimage.com/300x300/000/fff&text=Image+3",
-];
+type Product = {
+  id: number;
+  name: string;
+  price: string;
+  category: string;
+  status: string; // "Tersedia" atau "Tidak Tersedia"
+  image: string;
+  images: string[];
+  garansi: string;
+  berat: number | string;
+  deskripsi: string;
+  penitip_name: string;
+  penitip_since: string;
+  penitip_rating: number; // rata‐rata rating semua barang Terjual milik penitip
+  rating: number; // rating barang saat ini
+};
+
+interface Diskusi {
+  id: number;
+  isi: string;
+  jawaban?: string | null;
+  created_at: string;
+  pembeli: {
+    nama: string;
+  };
+}
 
 export default function ProductDetailPage() {
-  const [selectedImage, setSelectedImage] = useState(productImages[0]);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
+  const [diskusi, setDiskusi] = useState<Diskusi[]>([]);
+  const [newDiskusi, setNewDiskusi] = useState('');
+  const [showFormDiskusi, setShowFormDiskusi] = useState(false);
+  const [inCart, setInCart] = useState(false);
+
+  async function addCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.post(
+      'http://127.0.0.1:8000/api/cart-items',
+      { ID_BARANG: productId, quantity: 1 },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+  }
+
+  async function removeCartItem(productId: number) {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    await axios.delete(`http://127.0.0.1:8000/api/cart-items/remove/${productId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(`http://127.0.0.1:8000/api/produk/${id}`);
+        const raw: any = res.data;
+
+        const mapped: Product = {
+          id: raw.id,
+          name: raw.name,
+          price: raw.price,
+          category: raw.category,
+          status: raw.status, // mapping status dari backend
+          image: raw.image,
+          images: Array.isArray(raw.images) ? raw.images : [raw.image],
+          garansi: raw.garansi ?? '-',
+          berat: raw.berat ?? '-',
+          deskripsi: raw.deskripsi ?? '',
+          penitip_name: raw.penitip_name ?? '-',
+          penitip_since: raw.penitip_since ?? '-',
+          penitip_rating: raw.penitip_rating ?? 0, // rata‐rata rating semua barang Terjual
+          rating: raw.rating ?? 0,
+        };
+
+        setProduct(mapped);
+        setSelectedImage(mapped.image);
+      } catch (err) {
+        console.error('Gagal mengambil data produk', err);
+      }
+    };
+
+    const fetchDiskusi = async () => {
+      try {
+        const res = await axios.get(`http://127.0.0.1:8000/api/produk/${id}/diskusi`);
+        const dataArr = Array.isArray(res.data) ? res.data : res.data.data;
+        const diskusiData: Diskusi[] = dataArr.map((d: any) => ({
+          id: d.ID_DISKUSI,
+          isi: d.PERTANYAAN,
+          jawaban: d.JAWABAN || null,
+          created_at: d.CREATE_AT,
+          pembeli: { nama: d.pembeli?.NAMA_PEMBELI || 'Pengguna' },
+        }));
+        setDiskusi(diskusiData);
+      } catch (err) {
+        console.error('Gagal mengambil data diskusi', err);
+      }
+    };
+
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (cart.some((item: Product) => item.id.toString() === id)) {
+      setInCart(true);
+    }
+
+    fetchProduct();
+    fetchDiskusi();
+  }, [id]);
+
+  const handleCartToggle = async () => {
+    if (!product) return;
+
+    try {
+      if (inCart) {
+        await removeCartItem(product.id);
+        setInCart(false);
+      } else {
+        await addCartItem(product.id);
+        setInCart(true);
+      }
+    } catch (err) {
+      console.error('Gagal update cart:', err);
+      alert('Gagal update cart. Pastikan sudah login.');
+    }
+  };
+
+  const handleSubmitDiskusi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDiskusi.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await axios.post(
+        `http://127.0.0.1:8000/api/produk/${id}/diskusi`,
+        {
+          PERTANYAAN: newDiskusi,
+          ID_PEMBELI: user.ID_PEMBELI,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const newItem = res.data.data;
+      setDiskusi((prev) => [
+        ...prev,
+        {
+          id: newItem.ID_DISKUSI,
+          isi: newItem.PERTANYAAN,
+          created_at: newItem.CREATE_AT,
+          pembeli: { nama: user.NAMA_PEMBELI },
+        },
+      ]);
+      setNewDiskusi('');
+    } catch (err) {
+      console.error('Gagal mengirim diskusi', err);
+      alert('Gagal mengirim diskusi. Periksa apakah Anda sudah login.');
+    }
+  };
+
+  if (!product) return <div className="p-10 text-center">Loading...</div>;
 
   return (
     <div className="bg-[#FFF7E2] text-[#1E2B32] min-h-screen">
       <Header />
-
       <main className="max-w-[1200px] mx-auto px-6 py-8">
-        {/* PRODUK UTAMA */}
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* Gambar */}
+          {/* Gambar Produk */}
           <div className="flex flex-col items-center lg:items-start w-full lg:w-1/3">
             <img
               src={selectedImage}
-              alt="Produk Utama"
+              alt={product.name}
               className="w-full h-[280px] object-contain border border-gray-300 rounded-md bg-[#CFCAB5]"
             />
-            <div className="flex gap-2 mt-3">
-              {productImages.map((img, i) => (
+            <div className="flex flex-row flex-wrap gap-2 mt-3">
+              {product.images.map((imgUrl, index) => (
                 <img
-                  key={i}
-                  src={img}
-                  onClick={() => setSelectedImage(img)}
+                  key={index}
+                  src={imgUrl}
+                  onClick={() => setSelectedImage(imgUrl)}
                   className={`w-10 h-10 border rounded cursor-pointer object-contain bg-[#CFCAB5] ${
-                    selectedImage === img ? "ring-2 ring-[#5B8482]" : ""
+                    selectedImage === imgUrl ? 'ring-2 ring-[#5B8482]' : ''
                   }`}
                 />
               ))}
@@ -43,131 +202,122 @@ export default function ProductDetailPage() {
 
           {/* Detail Produk */}
           <div className="flex-1 space-y-4 text-sm">
-            <h1 className="text-5xl font-bold">MacBook Air 11”</h1>
-            <p className="text-2xl font-semibold">Rp12.000.000</p>
+            <h1 className="text-5xl font-bold">{product.name}</h1>
+            <p className="text-2xl font-semibold">{product.price}</p>
 
             <div>
               <p className="font-semibold underline">Detail</p>
               <p>
-                Garansi: <span className="italic">2025-07-10</span>
+                Garansi: <span className="italic">{product.garansi}</span>
               </p>
               <p>
-                Berat: <span className="italic">2kg</span>
+                Berat: <span className="italic">{product.berat}</span>
+              </p>
+              <p>
+                Kategori: <span className="italic">{product.category}</span>
+              </p>
+              <p>
+                Status: <span className="italic">{product.status}</span>
               </p>
             </div>
 
             <hr className="border-[#5DA3A2]" />
 
-            <p>
-              Macbook Air (11-inch, 2015) Type MJVM2.
-              <br />
-              Semua Fungsi WORK 100% dan Original.
-            </p>
-
-            {/* Spesifikasi Toggle */}
-            <div>
-              <p className="font-semibold">Spesifikasi:</p>
-              <ol className="list-decimal pl-5">
-                <li>Prosesor Core i5 1.6 GHz ~ Turbo Boost up to 3.6 GHz</li>
-                <li>Storage Apple SSD 128 GB</li>
-                <li>RAM DDR3 4 GB 1600 MHz</li>
-                {showMore && (
-                  <>
-                    <li>Backlight keyboard</li>
-                    <li>
-                      Intel HD Graphics 6000 1.5 GB (VGA TERTINGGI, Sama Seperti
-                      MacBook Air 2017)
-                    </li>
-                    <li>Kamera Jernih Banget</li>
-                    <li>Battery masih awet 5-7 jam pemakaian normal</li>
-                    <li>Status Battery: NORMAL</li>
-                    <li>
-                      LCD Original Bawaan (No Whitespot, No Deadpixel, No Blur,
-                      NORMAL 100%)
-                    </li>
-                  </>
-                )}
-              </ol>
-
-              {showMore && (
-                <>
-                  <div className="mt-2">
-                    <p className="font-semibold">Kelengkapan:</p>
-                    <ul className="list-disc pl-5">
-                      <li>MacBook Air 11 Inch [2015]</li>
-                      <li>Magsafe 2 Original</li>
-                      <li>AC Plugin</li>
-                    </ul>
-                  </div>
-
-                  <div className="mt-2">
-                    <p className="text-sm text-[#2D4C41]">
-                      <strong>#LIKE NEW</strong> = Kemulusan Diatas 98%, Like
-                      New. Perfect Condition.
-                      <br />
-                      <strong>#Mulus Pemakaian</strong> = Kemulusan Body 91 -
-                      96%, Mulus Pemakaian Wajar.
-                    </p>
-                  </div>
-                </>
-              )}
-
+            <div className="whitespace-pre-line">
+              {showMore
+                ? product.deskripsi
+                : product.deskripsi.slice(0, 100) + (product.deskripsi.length > 100 ? '...' : '')}
+            </div>
+            {product.deskripsi.length > 100 && (
               <button
                 className="text-[#2D4C41] font-bold text-sm inline-block mt-2"
                 onClick={() => setShowMore(!showMore)}
               >
-                {showMore ? "Lihat Sedikit" : "Lihat Selengkapnya"}
+                {showMore ? 'Lihat Sedikit' : 'Lihat Selengkapnya'}
               </button>
-            </div>
+            )}
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Penjual */}
-            <div className="flex items-center gap-4 pt-4">
+            {/* Info Penitip + rata‐rata rating di bawah nama */}
+            <div className="flex items-start gap-4 pt-4">
               <img
-                src="https://ui-avatars.com/api/?name=Xena+Putri"
-                alt="Xena Putri"
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(product.penitip_name)}`}
+                alt={product.penitip_name}
                 className="w-10 h-10 rounded-full"
               />
-              <div>
-                <p className="font-semibold">Xena Putri</p>
-                <p className="text-xs text-gray-600 flex items-center gap-2">
-                  <i className="bi bi-star-fill text-yellow-500"></i>
-                  4.6 (10)
-                  <span className="text-gray-400">&bull;</span>
-                  Bergabung sejak 2021-01-02
+              <div className="flex flex-col">
+                {/* Nama Penitip */}
+                <p className="font-semibold">{product.penitip_name}</p>
+
+                {/* Tampilkan rata‐rata rating penitip selalu (bukan hanya saat tidak tersedia) */}
+                <div className="flex items-center gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const filled = star <= Math.round(product.penitip_rating);
+                    return (
+                      <StarIcon
+                        key={star}
+                        className={`w-4 h-4 ${filled ? 'text-yellow-500' : 'text-gray-300'}`}
+                        fill={filled ? 'currentColor' : 'none'}
+                        stroke={filled ? 'none' : 'currentColor'}
+                      />
+                    );
+                  })}
+                  <span className="text-xs text-gray-600">
+                    {product.penitip_rating.toFixed(1)} / 5
+                  </span>
+                </div>
+
+                {/* Teks “Bergabung sejak” */}
+                <p className="text-xs text-gray-600 mt-1">
+                  Bergabung sejak {product.penitip_since}
                 </p>
               </div>
             </div>
 
             <hr className="border-[#5DA3A2]" />
 
-            {/* Pengiriman */}
+            {/* Info Pengiriman */}
             <div>
               <p className="font-semibold">Pengiriman</p>
-              <p className="text-sm">Standard</p>
-              <p className="text-sm">Operasional 08.00 - 20.00</p>
-              <p className="text-sm mt-1 font-medium text-right">Rp. 10.000</p>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Standard</span>
+                <span className="font-medium">Rp. 10.000</span>
+              </div>
+              <p className="text-sm">Operasional 08.00 – 20.00</p>
               <p className="text-xs text-gray-600">
-                Pembelian lebih dari 16.00 akan dikirim keesokan harinya
+                Pembelian setelah jam 16.00 dikirim keesokan harinya
               </p>
             </div>
           </div>
 
-          {/* Box Harga */}
+          {/* Box Harga & Aksi */}
           <div className="w-full lg:w-[280px] h-[260px] border border-[#72B7B9] rounded-xl p-5 text-sm bg-[#FFF7E2] shadow-sm overflow-y-auto">
             <div className="flex justify-between font-semibold mb-2">
               <span className="text-[#72B7B9]">SubTotal:</span>
-              <span className="text-[#1E2B32]">Rp12.000.000</span>
+              <span className="text-[#1E2B32]">{product.price}</span>
             </div>
-            <p className="text-[#2D4C41] font-semibold mb-3">Tersedia</p>
-            <button className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2">
-              Tambahkan ke Keranjang
+            <p className="text-[#2D4C41] font-semibold mb-3">
+              {product.status === 'Tersedia' ? 'Tersedia' : 'Tidak Tersedia'}
+            </p>
+
+            <button
+              className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
+              onClick={() => navigate(`/checkout/${product.id}`)}
+            >
+              Beli Sekarang
             </button>
-            <button className="w-full py-2 rounded border border-[#48635B] text-[#2D4C41] mb-6">
-              Tambahkan ke Keranjang
+            <button
+              className={`w-full py-2 rounded border mb-6 ${
+                inCart
+                  ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#DC2626]'
+                  : 'border-[#48635B] text-[#2D4C41]'
+              }`}
+              onClick={handleCartToggle}
+            >
+              {inCart ? 'Hapus dari Keranjang' : 'Tambahkan ke Keranjang'}
             </button>
-            <button className="bg-[#A8D0CF] text-white w-full py-2 rounded border border-[#5B8482]">
+            <button className="bg-[#4f9897] text-white w-full py-2 rounded border border-[#5B8482]">
               Sukai
             </button>
           </div>
@@ -176,32 +326,84 @@ export default function ProductDetailPage() {
         {/* DISKUSI */}
         <div className="mt-12 border-t border-[#D8D8D8] pt-6">
           <h3 className="font-semibold mb-4 text-lg text-[#2D4C41]">Diskusi</h3>
-          <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="#2D4C41"
-                strokeWidth="1.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M7 8h10M7 12h4m-9 8v-6a9 9 0 1118 0v6a1 1 0 01-1.447.894L15 18.118a2 2 0 00-1.106-.303H10.106a2 2 0 00-1.106.303l-4.553 2.776A1 1 0 013 20z"
-                />
-              </svg>
-              <p>Belum ada diskusi mengenai produk ini. Langsung saja chat penjual yuk!</p>
+
+          {diskusi.length === 0 ? (
+            <div className="bg-[#FFF7E2] border border-[#8FC5C1] text-sm text-[#2D4C41] px-4 py-3 rounded-lg">
+              <div className="flex justify-between items-center">
+                <p>Belum ada diskusi mengenai produk ini. Langsung saja mulai diskusi yuk!</p>
+                {!showFormDiskusi && (
+                  <button
+                    onClick={() => setShowFormDiskusi(true)}
+                    className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]"
+                  >
+                    Mulai Diskusi
+                  </button>
+                )}
+              </div>
+              {showFormDiskusi && (
+                <form
+                  onSubmit={handleSubmitDiskusi}
+                  className="flex flex-col md:flex-row gap-3 mt-4"
+                >
+                  <input
+                    type="text"
+                    value={newDiskusi}
+                    onChange={(e) => setNewDiskusi(e.target.value)}
+                    placeholder="Tulis pertanyaanmu di sini..."
+                    className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                  >
+                    Kirim
+                  </button>
+                </form>
+              )}
             </div>
-            <button className="border border-[#2D4C41] px-4 py-1.5 rounded-md text-[#2D4C41] hover:bg-[#F1EADA]">
-              Chat Penjual
-            </button>
-          </div>
+          ) : (
+            <div className="space-y-4 mb-6">
+              {diskusi.map((d) => (
+                <div
+                  key={d.id}
+                  className="bg-white shadow-sm border border-[#8FC5C1] rounded-lg px-4 py-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-[#2D4C41]">{d.pembeli.nama}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(d.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="text-sm mt-1 text-[#1E2B32]">{d.isi}</p>
+
+                  {d.jawaban && (
+                    <div className="mt-3 ml-4 pl-4 border-l-2 border-[#5B8482] text-sm text-[#2D4C41] bg-[#F0F7F7] rounded-md">
+                      <p className="font-semibold mb-1">Admin</p>
+                      <p>{d.jawaban}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <form onSubmit={handleSubmitDiskusi} className="flex flex-col md:flex-row gap-3 mt-4">
+                <input
+                  type="text"
+                  value={newDiskusi}
+                  onChange={(e) => setNewDiskusi(e.target.value)}
+                  placeholder="Tulis pertanyaanmu di sini..."
+                  className="flex-1 border border-[#8FC5C1] bg-white text-[#1E2B32] placeholder-gray-400 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#5B8482]"
+                />
+                <button
+                  type="submit"
+                  className="bg-[#5B8482] text-white px-6 py-2 rounded-md hover:bg-[#48635B]"
+                >
+                  Kirim
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </main>
-
       <Footer />
     </div>
   );
