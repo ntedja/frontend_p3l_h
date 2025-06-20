@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
-import { api, generateMagicLink } from '../api/apiAuth'; // Import generateMagicLink
+import { api, generateMagicLink, generatePegawaiMagicLink } from '../api/apiAuth';
 import type { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
 import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls';
@@ -118,8 +118,8 @@ export default function ProfilePage() {
               const url = await generateMagicLink(email);
               setMagicLinkUrl(url);
             } catch (err) {
-              console.error('Gagal menghasilkan magic link:', err);
-              setError('Gagal menghasilkan magic link untuk dashboard.');
+              console.error('Gagal menghasilkan magic link untuk penitip:', err);
+              setError('Gagal menghasilkan magic link untuk dashboard penitip.');
             }
           } else if (role === 'pegawai') {
             setFormData({
@@ -128,6 +128,15 @@ export default function ProfilePage() {
               NO_TELP_PEGAWAI: userData.NO_TELP_PEGAWAI || '',
               TGL_LAHIR_PEGAWAI: userData.TGL_LAHIR_PEGAWAI || '',
             });
+            // Generate magic link for pegawai
+            try {
+              const email = userData.EMAIL_PEGAWAI;
+              const url = await generatePegawaiMagicLink(email);
+              setMagicLinkUrl(url);
+            } catch (err) {
+              console.error('Gagal menghasilkan magic link untuk pegawai:', err);
+              setError('Gagal menghasilkan magic link untuk dashboard pegawai.');
+            }
           }
         } else {
           setError('Gagal memuat data profil: ' + (response.data.message || 'Respon tidak sukses'));
@@ -339,6 +348,9 @@ export default function ProfilePage() {
                     onClick={() => {
                       if (userRole === 'penitip' && magicLinkUrl) {
                         // For penitip, use the generated magic link
+                        window.location.href = magicLinkUrl;
+                      } else if (userRole === 'pegawai' && magicLinkUrl) {
+                        // For pegawai, use the generated magic link
                         window.location.href = magicLinkUrl;
                       } else {
                         // For other roles, use the default dashboard path

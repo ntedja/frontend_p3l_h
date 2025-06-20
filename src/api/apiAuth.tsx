@@ -105,6 +105,26 @@ export const generateMagicLink = async (email: string): Promise<string> => {
   }
 };
 
+export const generatePegawaiMagicLink = async (email: string): Promise<string> => {
+  try {
+    const response: AxiosResponse<{ message: string; url: string }> = await api.post(
+      '/pegawai/magic-link-login',
+      {
+        email,
+      },
+    );
+    return response.data.url;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    throw (
+      axiosError.response?.data || {
+        success: false,
+        message: 'Gagal menghasilkan magic link untuk Pegawai.',
+      }
+    );
+  }
+};
+
 export const signUp = async (data: PembeliRegisterData): Promise<ApiResponse> => {
   try {
     const formattedData = {
