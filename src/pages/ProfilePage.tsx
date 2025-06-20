@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
-import { api } from '../api/apiAuth'; // Import the centralized API instance
-import type { AxiosError } from 'axios'; // Import AxiosError for better error typing
+import { api, generateMagicLink, generatePegawaiMagicLink } from '../api/apiAuth';
+import type { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls'; // Adjust path as needed
+import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls';
 
 interface PembeliProfileData {
   NAMA_PEMBELI?: string;
@@ -36,7 +36,10 @@ interface PenitipProfileData {
   ALAMAT_PENITIP?: string;
 }
 
-type ProfileData = PembeliProfileData & OrganisasiProfileData & PenitipProfileData & PegawaiProfileData;
+type ProfileData = PembeliProfileData &
+  OrganisasiProfileData &
+  PenitipProfileData &
+  PegawaiProfileData;
 type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 
 export default function ProfilePage() {
@@ -45,6 +48,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [magicLinkUrl, setMagicLinkUrl] = useState<string | null>(null); // State for magic link URL
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -73,7 +77,7 @@ export default function ProfilePage() {
         relativeApiUrl = '/organisasi/me';
       } else if (role === 'pegawai') {
         relativeApiUrl = '/pegawai/me';
-      }  else if (role === 'penitip') {
+      } else if (role === 'penitip') {
         relativeApiUrl = '/penitip/me';
       } else {
         setError(`Peran pengguna "${role}" tidak didukung untuk halaman profil ini.`);
@@ -108,14 +112,32 @@ export default function ProfilePage() {
               NO_TELP_PENITIP: userData.NO_TELP_PENITIP || '',
               ALAMAT_PENITIP: userData.ALAMAT_PENITIP || '',
             });
+            // Generate magic link for penitip
+            try {
+              const email = userData.EMAIL_PENITIP;
+              const url = await generateMagicLink(email);
+              setMagicLinkUrl(url);
+            } catch (err) {
+              console.error('Gagal menghasilkan magic link untuk penitip:', err);
+              setError('Gagal menghasilkan magic link untuk dashboard penitip.');
+            }
           } else if (role === 'pegawai') {
-           setFormData({
-             NAMA_PEGAWAI: userData.NAMA_PEGAWAI || '',
-             EMAIL_PEGAWAI: userData.EMAIL_PEGAWAI || '',
-             NO_TELP_PEGAWAI: userData.NO_TELP_PEGAWAI || '',
-             TGL_LAHIR_PEGAWAI: userData.TGL_LAHIR_PEGAWAI || '',
-           });
-         }
+            setFormData({
+              NAMA_PEGAWAI: userData.NAMA_PEGAWAI || '',
+              EMAIL_PEGAWAI: userData.EMAIL_PEGAWAI || '',
+              NO_TELP_PEGAWAI: userData.NO_TELP_PEGAWAI || '',
+              TGL_LAHIR_PEGAWAI: userData.TGL_LAHIR_PEGAWAI || '',
+            });
+            // Generate magic link for pegawai
+            try {
+              const email = userData.EMAIL_PEGAWAI;
+              const url = await generatePegawaiMagicLink(email);
+              setMagicLinkUrl(url);
+            } catch (err) {
+              console.error('Gagal menghasilkan magic link untuk pegawai:', err);
+              setError('Gagal menghasilkan magic link untuk dashboard pegawai.');
+            }
+          }
         } else {
           setError('Gagal memuat data profil: ' + (response.data.message || 'Respon tidak sukses'));
         }
@@ -146,19 +168,13 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    // const token = localStorage.getItem('token'); // Token will be handled by the 'api' instance
-
-    // if (!token) { // No longer needed if using 'api' instance which should have token
-    //   setError('Sesi tidak valid. Silakan login kembali.');
-    //   return;
-    // }
 
     if (!userRole) {
       setError('Peran pengguna tidak valid.');
       return;
     }
 
-    let relativeApiUrl = ''; // Use relative path
+    let relativeApiUrl = '';
     let payload: any = {};
 
     if (userRole === 'pembeli') {
@@ -168,19 +184,19 @@ export default function ProfilePage() {
         NO_TELP_PEMBELI: formData.NO_TELP_PEMBELI,
       };
     } else if (userRole === 'organisasi') {
-      relativeApiUrl = '/organisasi/me/update'; // This endpoint is /api/organisasi/me/update as per api.php
+      relativeApiUrl = '/organisasi/me/update';
       payload = {
         NAMA_ORGANISASI: formData.NAMA_ORGANISASI,
         NO_TELP_ORGANISASI: formData.NO_TELP_ORGANISASI,
         ALAMAT_ORGANISASI: formData.ALAMAT_ORGANISASI,
       };
     } else if (userRole === 'pegawai') {
-       relativeApiUrl = '/pegawai/me/update';
-       payload = {
-         NAMA_PEGAWAI: formData.NAMA_PEGAWAI,
-         NO_TELP_PEGAWAI: formData.NO_TELP_PEGAWAI,
-       };
-     } else if (userRole === 'penitip') {
+      relativeApiUrl = '/pegawai/me/update';
+      payload = {
+        NAMA_PEGAWAI: formData.NAMA_PEGAWAI,
+        NO_TELP_PEGAWAI: formData.NO_TELP_PEGAWAI,
+      };
+    } else if (userRole === 'penitip') {
       relativeApiUrl = '/penitip/me/update';
       payload = {
         NAMA_PENITIP: formData.NAMA_PENITIP,
@@ -193,12 +209,11 @@ export default function ProfilePage() {
     }
 
     try {
-      const response = await api.put(relativeApiUrl, payload); // Use 'api' instance
+      const response = await api.put(relativeApiUrl, payload);
 
       if (response.data.success) {
         alert('Profil berhasil diperbarui.');
         setIsEditing(false);
-        // Optionally re-fetch data or update state directly if backend returns updated user
         const updatedUserData = response.data.data;
         if (updatedUserData) {
           setFormData((prev) => ({ ...prev, ...updatedUserData }));
@@ -239,12 +254,12 @@ export default function ProfilePage() {
       : userRole === 'penitip'
       ? formData.NAMA_PENITIP
       : 'Pengguna';
- const displayEmail =
-   userRole === 'pembeli'
+  const displayEmail =
+    userRole === 'pembeli'
       ? formData.EMAIL_PEMBELI
       : userRole === 'organisasi'
       ? formData.EMAIL_ORGANISASI
-      :  userRole === 'pegawai'
+      : userRole === 'pegawai'
       ? formData.EMAIL_PEGAWAI
       : userRole === 'penitip'
       ? formData.EMAIL_PENITIP
@@ -283,11 +298,10 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Navigation Links */}
               <div className="space-y-3">
                 <Link
                   to="/profile"
-                  className="block p-2 text-[#1E2B32] bg-[#F0F0F0] rounded-md transition" // Active style
+                  className="block p-2 text-[#1E2B32] bg-[#F0F0F0] rounded-md transition"
                 >
                   Profile
                 </Link>
@@ -329,21 +343,26 @@ export default function ProfilePage() {
                 >
                   Tentang ReuseMart
                 </Link>
-                {/* Dashboard Link - Moved here to be available for all roles with a dashboard path */}
                 {userRole && getDashboardPathForRole(userRole) && (
                   <button
                     onClick={() => {
-                      const token = localStorage.getItem('token');
-                      const dashboardPath = getDashboardPathForRole(userRole);
-                      if (token && dashboardPath) {
-                        // Ensure the token is appended correctly for Filament if it expects it in the URL
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
+                      if (userRole === 'penitip' && magicLinkUrl) {
+                        // For penitip, use the generated magic link
+                        window.location.href = magicLinkUrl;
+                      } else if (userRole === 'pegawai' && magicLinkUrl) {
+                        // For pegawai, use the generated magic link
+                        window.location.href = magicLinkUrl;
                       } else {
-                        // Fallback or error handling if token/path is missing
-                        // The outer condition should ensure dashboardPath is valid here
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
-                          dashboardPath || ''
-                        }`;
+                        // For other roles, use the default dashboard path
+                        const token = localStorage.getItem('token');
+                        const dashboardPath = getDashboardPathForRole(userRole);
+                        if (token && dashboardPath) {
+                          window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
+                        } else {
+                          window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
+                            dashboardPath || ''
+                          }`;
+                        }
                       }
                     }}
                     className="block w-full text-left p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
@@ -354,7 +373,6 @@ export default function ProfilePage() {
               </div>
             </aside>
 
-            {/* Formulir Profil */}
             <section className="w-full md:w-3/4 space-y-4">
               {userRole === 'pembeli' && (
                 <>
@@ -487,74 +505,74 @@ export default function ProfilePage() {
                 </>
               )}
               {userRole === 'pegawai' && (
-               <>
-                 <div>
-                   <label className="block font-medium mb-1">Nama Pegawai</label>
-                   <input
-                     type="text"
-                     name="NAMA_PEGAWAI"
-                     value={formData.NAMA_PEGAWAI || ''}
-                     onChange={handleChange}
-                     disabled={!isEditing}
-                     className={`w-full p-2 border rounded-md ${
-                       !isEditing ? 'bg-gray-100' : 'bg-white'
-                     } border-[#CCC]`}
-                   />
-                 </div>
-   
-                 <div>
-                   <label className="block font-medium mb-1">Email Pegawai</label>
-                   <input
-                     type="email"
-                     name="EMAIL_PEGAWAI"
-                     value={displayEmail || ''}
-                     readOnly
-                     disabled
-                     className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
-                   />
-                   <p className="text-xs text-gray-500 mt-1">
-                     Email tidak dapat diubah karena digunakan untuk login.
-                   </p>
-                 </div>
-   
-                 <div>
-                   <label className="block font-medium mb-1">Nomor Telepon Pegawai</label>
-                   <input
-                     type="tel"
-                     name="NO_TELP_PEGAWAI"
-                     value={formData.NO_TELP_PEGAWAI || ''}
-                     onChange={handleChange}
-                     disabled={!isEditing}
-                     className={`w-full p-2 border rounded-md ${
-                       !isEditing ? 'bg-gray-100' : 'bg-white'
-                     } border-[#CCC]`}
-                   />
-                 </div>
-   
-                 <div>
-                   <label className="block font-medium mb-1">Tanggal Lahir Pegawai</label>
-                   <input
-                     type="text"
-                     name="TGL_LAHIR_PEGAWAI"
-                     value={
-                       formData.TGL_LAHIR_PEGAWAI
-                         ? new Date(formData.TGL_LAHIR_PEGAWAI).toLocaleDateString('id-ID', {
-                             day: 'numeric',
-                             month: 'long',
-                             year: 'numeric',
-                           })
-                         : ''
-                     }
-                     readOnly
-                     disabled
-                     className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
-                   />
-                   <p className="text-sm text-gray-500 mt-1">
-                     Tanggal lahir tidak dapat diubah setelah verifikasi KYC.
-                   </p>
-                 </div>
-               </>
-             )}
+                <>
+                  <div>
+                    <label className="block font-medium mb-1">Nama Pegawai</label>
+                    <input
+                      type="text"
+                      name="NAMA_PEGAWAI"
+                      value={formData.NAMA_PEGAWAI || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={`w-full p-2 border rounded-md ${
+                        !isEditing ? 'bg-gray-100' : 'bg-white'
+                      } border-[#CCC]`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">Email Pegawai</label>
+                    <input
+                      type="email"
+                      name="EMAIL_PEGAWAI"
+                      value={displayEmail || ''}
+                      readOnly
+                      disabled
+                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email tidak dapat diubah karena digunakan untuk login.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">Nomor Telepon Pegawai</label>
+                    <input
+                      type="tel"
+                      name="NO_TELP_PEGAWAI"
+                      value={formData.NO_TELP_PEGAWAI || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={`w-full p-2 border rounded-md ${
+                        !isEditing ? 'bg-gray-100' : 'bg-white'
+                      } border-[#CCC]`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">Tanggal Lahir Pegawai</label>
+                    <input
+                      type="text"
+                      name="TGL_LAHIR_PEGAWAI"
+                      value={
+                        formData.TGL_LAHIR_PEGAWAI
+                          ? new Date(formData.TGL_LAHIR_PEGAWAI).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : ''
+                      }
+                      readOnly
+                      disabled
+                      className="w-full p-2 border rounded-md bg-gray-100 border-[#CCC]"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Tanggal lahir tidak dapat diubah setelah verifikasi KYC.
+                    </p>
+                  </div>
+                </>
+              )}
               {userRole === 'penitip' && (
                 <>
                   <div>
