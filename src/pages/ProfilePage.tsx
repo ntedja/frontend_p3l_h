@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
-import { api } from '../api/apiAuth'; // Import the centralized API instance
-import type { AxiosError } from 'axios'; // Import AxiosError for better error typing
+import { api, generateMagicLink } from '../api/apiAuth'; // Import generateMagicLink
+import type { AxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls'; // Adjust path as needed
+import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls';
 
 interface PembeliProfileData {
   NAMA_PEMBELI?: string;
@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [magicLinkUrl, setMagicLinkUrl] = useState<string | null>(null); // State for magic link URL
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -111,6 +112,15 @@ export default function ProfilePage() {
               NO_TELP_PENITIP: userData.NO_TELP_PENITIP || '',
               ALAMAT_PENITIP: userData.ALAMAT_PENITIP || '',
             });
+            // Generate magic link for penitip
+            try {
+              const email = userData.EMAIL_PENITIP;
+              const url = await generateMagicLink(email);
+              setMagicLinkUrl(url);
+            } catch (err) {
+              console.error('Gagal menghasilkan magic link:', err);
+              setError('Gagal menghasilkan magic link untuk dashboard.');
+            }
           } else if (role === 'pegawai') {
             setFormData({
               NAMA_PEGAWAI: userData.NAMA_PEGAWAI || '',
@@ -149,19 +159,13 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    // const token = localStorage.getItem('token'); // Token will be handled by the 'api' instance
-
-    // if (!token) { // No longer needed if using 'api' instance which should have token
-    //   setError('Sesi tidak valid. Silakan login kembali.');
-    //   return;
-    // }
 
     if (!userRole) {
       setError('Peran pengguna tidak valid.');
       return;
     }
 
-    let relativeApiUrl = ''; // Use relative path
+    let relativeApiUrl = '';
     let payload: any = {};
 
     if (userRole === 'pembeli') {
@@ -171,7 +175,7 @@ export default function ProfilePage() {
         NO_TELP_PEMBELI: formData.NO_TELP_PEMBELI,
       };
     } else if (userRole === 'organisasi') {
-      relativeApiUrl = '/organisasi/me/update'; // This endpoint is /api/organisasi/me/update as per api.php
+      relativeApiUrl = '/organisasi/me/update';
       payload = {
         NAMA_ORGANISASI: formData.NAMA_ORGANISASI,
         NO_TELP_ORGANISASI: formData.NO_TELP_ORGANISASI,
@@ -196,12 +200,11 @@ export default function ProfilePage() {
     }
 
     try {
-      const response = await api.put(relativeApiUrl, payload); // Use 'api' instance
+      const response = await api.put(relativeApiUrl, payload);
 
       if (response.data.success) {
         alert('Profil berhasil diperbarui.');
         setIsEditing(false);
-        // Optionally re-fetch data or update state directly if backend returns updated user
         const updatedUserData = response.data.data;
         if (updatedUserData) {
           setFormData((prev) => ({ ...prev, ...updatedUserData }));
@@ -286,11 +289,10 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Navigation Links */}
               <div className="space-y-3">
                 <Link
                   to="/profile"
-                  className="block p-2 text-[#1E2B32] bg-[#F0F0F0] rounded-md transition" // Active style
+                  className="block p-2 text-[#1E2B32] bg-[#F0F0F0] rounded-md transition"
                 >
                   Profile
                 </Link>
@@ -332,21 +334,23 @@ export default function ProfilePage() {
                 >
                   Tentang ReuseMart
                 </Link>
-                {/* Dashboard Link - Moved here to be available for all roles with a dashboard path */}
                 {userRole && getDashboardPathForRole(userRole) && (
                   <button
                     onClick={() => {
-                      const token = localStorage.getItem('token');
-                      const dashboardPath = getDashboardPathForRole(userRole);
-                      if (token && dashboardPath) {
-                        // Ensure the token is appended correctly for Filament if it expects it in the URL
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
+                      if (userRole === 'penitip' && magicLinkUrl) {
+                        // For penitip, use the generated magic link
+                        window.location.href = magicLinkUrl;
                       } else {
-                        // Fallback or error handling if token/path is missing
-                        // The outer condition should ensure dashboardPath is valid here
-                        window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
-                          dashboardPath || ''
-                        }`;
+                        // For other roles, use the default dashboard path
+                        const token = localStorage.getItem('token');
+                        const dashboardPath = getDashboardPathForRole(userRole);
+                        if (token && dashboardPath) {
+                          window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${dashboardPath}?auth_token=${token}`;
+                        } else {
+                          window.location.href = `${FILAMENT_DASHBOARD_BASE_URL}${
+                            dashboardPath || ''
+                          }`;
+                        }
                       }
                     }}
                     className="block w-full text-left p-2 text-[#1E2B32] hover:bg-[#F0F0F0] rounded-md transition"
@@ -357,7 +361,6 @@ export default function ProfilePage() {
               </div>
             </aside>
 
-            {/* Formulir Profil */}
             <section className="w-full md:w-3/4 space-y-4">
               {userRole === 'pembeli' && (
                 <>
