@@ -6,7 +6,7 @@ import { ShieldCheck, Bell, DollarSign, HeartHandshake } from "lucide-react";
 
 const ReuseMartCarePage = () => {
   useEffect(() => {
-    document.title = "ReuseMart Care";
+    document.title = "ReuseMart - Care";
   }, []);
 
   const steps = [

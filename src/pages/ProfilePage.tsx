@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
@@ -42,7 +42,15 @@ type ProfileData = PembeliProfileData &
   PegawaiProfileData;
 type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 
+import { useEffect } from 'react';
+
 export default function ProfilePage() {
+  useEffect(() => {
+    document.title = "Reusemart - Profile";
+    return () => {
+      document.title = "ReuseMart";
+    };
+  }, []);
   const [formData, setFormData] = useState<ProfileData>({});
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isEditing, setIsEditing] = useState(false);

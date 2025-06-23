@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircleIcon, XCircleIcon, ClockIcon, XIcon, StarIcon, UploadIcon } from 'lucide-react';
 
 import Header from '../components/Header';
@@ -655,6 +655,12 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
 
 // --- Komponen Utama: RiwayatPesananPage ---
 export default function RiwayatPesananPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Riwayat Pesanan';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [pesanan, setPesanan] = useState<Pesanan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

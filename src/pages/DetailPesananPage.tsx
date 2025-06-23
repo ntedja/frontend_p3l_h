@@ -12,6 +12,12 @@ interface Barang {
 }
 
 export default function DetailPesananPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Detail Pesanan';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const { id } = useParams();
   const [barang, setBarang] = useState<Barang[]>([]);
 

@@ -24,6 +24,12 @@ interface ValidationErrors {
 }
 
 const RequestPage: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Reusemart - Request';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,9 +87,6 @@ const RequestPage: React.FC = () => {
       });
     }
   }, [navigate, location.pathname, memoizedFetchRequests]);
-
-
-
 
   // Handle perubahan input form
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

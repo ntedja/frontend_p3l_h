@@ -58,6 +58,12 @@ const categories = [
 const API_BASE_URL = 'https://reusemart.site/api';
 
 export default function HomePage() {
+  useEffect(() => {
+    document.title = 'Reusemart';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState<'recent' | CategoryKey>('recent');
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);

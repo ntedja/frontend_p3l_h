@@ -10,6 +10,12 @@ import {
 import type { TransaksiDonasi } from '../api/apiRequestDonasi';
 
 export default function HistoryRequest() {
+  useEffect(() => {
+    document.title = 'Reusemart - History Request';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const user = useState(() => {
     const userData = localStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
@@ -51,15 +57,17 @@ export default function HistoryRequest() {
       if (!user || typeof user.ID_ORGANISASI === 'undefined') {
         setTransaksis([]);
         setFilteredTransaksis([]);
-        throw new Error('Informasi organisasi tidak valid atau Anda tidak login sebagai organisasi.');
+        throw new Error(
+          'Informasi organisasi tidak valid atau Anda tidak login sebagai organisasi.',
+        );
       }
       const loggedInOrgId = user.ID_ORGANISASI;
 
       const allTransactions = await fetchTransaksiDonasi(token);
-      
+
       // Filter transaksi untuk organisasi yang sedang login
       const orgTransactions = allTransactions.filter(
-        (transaksi) => transaksi.ID_ORGANISASI === loggedInOrgId
+        (transaksi) => transaksi.ID_ORGANISASI === loggedInOrgId,
       );
 
       setTransaksis(orgTransactions);
@@ -89,8 +97,10 @@ export default function HistoryRequest() {
         (transaksi) =>
           transaksi.request?.barang?.NAMA_BARANG.toLowerCase().includes(lowercasedSearchTerm) ||
           formatDate(transaksi.TGL_DONASI).toLowerCase().includes(lowercasedSearchTerm) ||
-          (transaksi.request?.DESKRIPSI_REQUEST || '').toLowerCase().includes(lowercasedSearchTerm) ||
-          (transaksi.PENERIMA || '').toLowerCase().includes(lowercasedSearchTerm)
+          (transaksi.request?.DESKRIPSI_REQUEST || '')
+            .toLowerCase()
+            .includes(lowercasedSearchTerm) ||
+          (transaksi.PENERIMA || '').toLowerCase().includes(lowercasedSearchTerm),
       );
       setFilteredTransaksis(filtered);
     }

@@ -1,4 +1,5 @@
 import logoImage from '../assets/Logo1.png';
+import qrImage from '../assets/QR-ReuseMart-Mobile.png';
 
 export default function Footer() {
   return (
@@ -29,9 +30,7 @@ export default function Footer() {
         {/* Kanan - Download */}
         <div className="flex flex-col items-center">
           <p className="font-bold mb-2">Download Aplikasi Kami</p>
-          <div className="bg-[#48635B] w-28 h-28 rounded flex items-center justify-center">
-            <div className="w-12 h-12 bg-[#FDF2E5] rounded" />
-          </div>
+          <img src={qrImage} alt="QR Code ReuseMart Mobile" className="w-28 h-28 rounded" />
         </div>
       </div>
 

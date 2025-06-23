@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import { registerOrganisasi, getErrorMessage } from '../api/apiAuth';
 
 export default function RegisterPageOrganisasi() {
+  useEffect(() => {
+    document.title = 'Reusemart - Register Organisasi';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -53,7 +59,11 @@ export default function RegisterPageOrganisasi() {
       if (result.success) {
         // Registration successful, navigate to login with success message and preselect user type
         navigate('/login', {
-          state: { registrationSuccess: true, email: formData.EMAIL_ORGANISASI, userType: 'organization' },
+          state: {
+            registrationSuccess: true,
+            email: formData.EMAIL_ORGANISASI,
+            userType: 'organization',
+          },
         });
       } else {
         setErrorMessage(getErrorMessage(result));

@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logoImage from '../assets/logo.png';
 
 export default function ResetPasswordPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Reset Password';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
   const [password, setPasswordNew] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

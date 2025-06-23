@@ -14,6 +14,12 @@ type ProfileData = {
 };
 
 export default function ProfilePage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Profile';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [formData, setFormData] = useState<ProfileData>({
     NAMA_PEMBELI: '',
     EMAIL_PEMBELI: '',

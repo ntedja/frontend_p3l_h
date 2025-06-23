@@ -16,6 +16,12 @@ const ITEMS_PER_PAGE = 5;
 const MAX_CART_ITEMS = 50;
 
 export default function CartPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Cart';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);

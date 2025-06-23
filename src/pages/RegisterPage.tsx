@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import { signUp, getErrorMessage } from '../api/apiAuth';
 
 export default function RegisterPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Register';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({

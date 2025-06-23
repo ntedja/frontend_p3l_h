@@ -45,6 +45,12 @@ interface Village {
 }
 
 export default function AlamatPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Alamat';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   // Address related states
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [filteredAddresses, setFilteredAddresses] = useState<Address[]>([]);

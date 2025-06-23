@@ -57,6 +57,12 @@ const categories = [
 ];
 
 export default function KatalogRequest() {
+  useEffect(() => {
+    document.title = 'Reusemart - Katalog Request';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState<'all' | CategoryKey>('all');
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

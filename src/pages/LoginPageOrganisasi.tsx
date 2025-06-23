@@ -1,10 +1,17 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import axios from 'axios';
 
 export default function LoginPageOrganisasi() {
+  useEffect(() => {
+    document.title = 'Reusemart - Login Organisasi';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');

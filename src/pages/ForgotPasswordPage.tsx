@@ -1,9 +1,16 @@
+import { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logoImage from '../assets/logo.png';
 
 export default function ForgotPasswordPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Lupa Password';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');

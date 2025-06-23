@@ -6,6 +6,12 @@ import axios from 'axios';
 import { loginOrganisasi, loginPenitip, getErrorMessage, setAuthToken } from '../api/apiAuth';
 
 export default function LoginPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Login';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 

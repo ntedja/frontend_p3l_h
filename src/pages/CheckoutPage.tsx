@@ -62,6 +62,12 @@ function Modal({
 }
 
 export default function CheckoutPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Checkout';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const navigate = useNavigate();
 
   const displayToBackend = {

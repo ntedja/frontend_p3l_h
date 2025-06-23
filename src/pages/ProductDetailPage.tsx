@@ -33,6 +33,12 @@ interface Diskusi {
 }
 
 export default function ProductDetailPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Detail Produk';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);

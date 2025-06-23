@@ -1,6 +1,13 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function KonfirmasiPesananPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Konfirmasi Pesanan';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
 

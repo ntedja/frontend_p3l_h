@@ -3,6 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function PembayaranPage() {
+  useEffect(() => {
+    document.title = 'Reusemart - Pembayaran';
+    return () => {
+      document.title = 'ReuseMart';
+    };
+  }, []);
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
 
