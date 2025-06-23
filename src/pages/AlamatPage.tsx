@@ -92,7 +92,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/pembeli/me', {
+        const response = await axios.get('https://reusemart.site/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -130,7 +130,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/pembeli/me/alamat', {
+        const response = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(response.data.data);
@@ -168,7 +168,7 @@ export default function AlamatPage() {
   useEffect(() => {
     if (showAddForm && provinces.length === 0) {
       axios
-        .get('http://127.0.0.1:8000/api/provinsi')
+        .get('https://reusemart.site/api/provinsi')
         .then((response) => setProvinces(response.data))
         .catch((error) => console.error('Failed to load provinces:', error));
     }
@@ -187,7 +187,7 @@ export default function AlamatPage() {
 
     if (provinceId) {
       axios
-        .get(`http://127.0.0.1:8000/api/kabupaten/${provinceId}`)
+        .get(`https://reusemart.site/api/kabupaten/${provinceId}`)
         .then((response) => setRegencies(response.data))
         .catch((error) => console.error('Failed to load regencies:', error));
     } else {
@@ -206,7 +206,7 @@ export default function AlamatPage() {
 
     if (regencyId) {
       axios
-        .get(`http://127.0.0.1:8000/api/kecamatan/${regencyId}`)
+        .get(`https://reusemart.site/api/kecamatan/${regencyId}`)
         .then((response) => setDistricts(response.data))
         .catch((error) => console.error('Failed to load districts:', error));
     } else {
@@ -220,7 +220,7 @@ export default function AlamatPage() {
 
     if (districtId) {
       axios
-        .get(`http://127.0.0.1:8000/api/desa/${districtId}`)
+        .get(`https://reusemart.site/api/desa/${districtId}`)
         .then((response) => setVillages(response.data))
         .catch((error) => console.error('Failed to load villages:', error));
     } else {
@@ -246,7 +246,7 @@ export default function AlamatPage() {
 
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
-        const response = await axios.delete(`http://127.0.0.1:8000/api/pembeli/me/alamat/${id}`, {
+        const response = await axios.delete(`https://reusemart.site/api/pembeli/me/alamat/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -283,13 +283,13 @@ export default function AlamatPage() {
 
     // Load location dropdowns
     axios
-      .get(`http://127.0.0.1:8000/api/kabupaten/${address.PROVINSI}`)
+      .get(`https://reusemart.site/api/kabupaten/${address.PROVINSI}`)
       .then((res) => setRegencies(res.data));
     axios
-      .get(`http://127.0.0.1:8000/api/kecamatan/${address.KABUPATEN}`)
+      .get(`https://reusemart.site/api/kecamatan/${address.KABUPATEN}`)
       .then((res) => setDistricts(res.data));
     axios
-      .get(`http://127.0.0.1:8000/api/desa/${address.KECAMATAN}`)
+      .get(`https://reusemart.site/api/desa/${address.KECAMATAN}`)
       .then((res) => setVillages(res.data));
   };
 
@@ -304,7 +304,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
+        `https://reusemart.site/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -323,7 +323,7 @@ export default function AlamatPage() {
 
       if (response.data.success) {
         // Refresh the addresses list
-        const updatedResponse = await axios.get('http://127.0.0.1:8000/api/pembeli/me/alamat', {
+        const updatedResponse = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(updatedResponse.data.data);
@@ -386,7 +386,7 @@ export default function AlamatPage() {
 
     try {
       await axios.post(
-        'http://127.0.0.1:8000/api/pembeli/me/alamat',
+        'https://reusemart.site/api/pembeli/me/alamat',
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -399,7 +399,7 @@ export default function AlamatPage() {
       );
 
       // Refresh addresses list
-      const updatedResponse = await axios.get('http://127.0.0.1:8000/api/pembeli/me/alamat', {
+      const updatedResponse = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
         headers: { Authorization: `Bearer ${token}` },
       });
 

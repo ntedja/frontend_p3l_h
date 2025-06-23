@@ -113,7 +113,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const response = await axios.post('http://127.0.0.1:8000/api/checkout', payload, {
+      const response = await axios.post('https://reusemart.site/api/checkout', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -146,13 +146,13 @@ export default function CheckoutPage() {
         if (!token) throw new Error('Token tidak ditemukan.');
 
         const [profileRes, productRes, addressRes] = await Promise.all([
-          axios.get('http://127.0.0.1:8000/api/pembeli/me', {
+          axios.get('https://reusemart.site/api/pembeli/me', {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://127.0.0.1:8000/api/produk/${id}`, {
+          axios.get(`https://reusemart.site/api/produk/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get('http://127.0.0.1:8000/api/pembeli/me/alamat', {
+          axios.get('https://reusemart.site/api/pembeli/me/alamat', {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

@@ -53,7 +53,7 @@ export default function LoginPage() {
 
     // Attempt 1: Login as Pembeli/Pegawai
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/login', {
+      const res = await axios.post('https://reusemart.site/api/login', {
         email: email, // The backend for /api/login expects 'email'
         password: password,
       });

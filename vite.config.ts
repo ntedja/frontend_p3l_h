@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000', // ganti dengan URL Laravel kamu jika berbeda
+        target: 'https://reusemart.site', // ganti dengan URL Laravel kamu jika berbeda
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/api/, 'api'),
       },

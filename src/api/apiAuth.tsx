@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://reusemart.site/api';
 
 export const api = axios.create({
   // Export the api instance

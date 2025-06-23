@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/forgot-password', {
+      const res = await axios.post('https://reusemart.site/api/forgot-password', {
         password,
       });
 

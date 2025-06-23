@@ -16,7 +16,7 @@ export default function PembayaranPage() {
       const token = localStorage.getItem('token');
       axios
         .post(
-          `http://127.0.0.1:8000/api/checkout/${orderId}/batal`,
+          `https://reusemart.site/api/checkout/${orderId}/batal`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -47,7 +47,7 @@ export default function PembayaranPage() {
       const formData = new FormData();
       formData.append('bukti_transfer', file);
 
-      await axios.post(`http://127.0.0.1:8000/api/checkout/${orderId}/upload-bukti`, formData, {
+      await axios.post(`https://reusemart.site/api/checkout/${orderId}/upload-bukti`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

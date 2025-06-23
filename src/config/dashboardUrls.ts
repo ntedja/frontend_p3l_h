@@ -1,6 +1,6 @@
 export type UserRole = 'pembeli' | 'organisasi' | 'pegawai' | 'penitip' | null;
 
-export const FILAMENT_DASHBOARD_BASE_URL = 'http://127.0.0.1:8000';
+export const FILAMENT_DASHBOARD_BASE_URL = 'https://reusemart.site';
 
 export const getDashboardPathForRole = (role: UserRole): string | null => {
   if (role === 'pegawai') {
