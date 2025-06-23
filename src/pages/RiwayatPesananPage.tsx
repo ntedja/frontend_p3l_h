@@ -119,7 +119,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
       formData.append('bukti_transfer', file);
 
       const response = await fetch(
-        `https://reusemart.site/api/checkout/${pesananDetail.id}/upload-bukti`,
+        `https://dashboard.reusemart.site/api/checkout/${pesananDetail.id}/upload-bukti`,
         {
           method: 'POST',
           headers: {
@@ -176,7 +176,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
           return;
         }
 
-        const response = await fetch(`https://reusemart.site/api/pesanan/${pesananId}`, {
+        const response = await fetch(`https://dashboard.reusemart.site/api/pesanan/${pesananId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -279,7 +279,7 @@ const PesananDetailModal: React.FC<PesananDetailModalProps> = ({
         const token = getToken();
         if (!token) return;
 
-        const response = await fetch(`https://reusemart.site/api/checkout/${id}/batal`, {
+        const response = await fetch(`https://dashboard.reusemart.site/api/checkout/${id}/batal`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -678,7 +678,7 @@ export default function RiwayatPesananPage() {
           return;
         }
         // Fetch riwayat pesanan secara lokal
-        const response = await fetch(`https://reusemart.site/api/pesanan`, {
+        const response = await fetch(`https://dashboard.reusemart.site/api/pesanan`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',

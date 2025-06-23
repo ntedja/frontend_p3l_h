@@ -55,7 +55,7 @@ const categories = [
   { label: 'Kosmetik & Perawatan Diri', value: 'Kosmetik', icon: 'bi-heart', slug: 'kosmetik' },
 ];
 
-const API_BASE_URL = 'https://reusemart.site/api';
+const API_BASE_URL = 'https://dashboard.reusemart.site/api';
 
 export default function HomePage() {
   useEffect(() => {

@@ -22,7 +22,7 @@ export default function PembayaranPage() {
       const token = localStorage.getItem('token');
       axios
         .post(
-          `https://reusemart.site/api/checkout/${orderId}/batal`,
+          `https://dashboard.reusemart.site/api/checkout/${orderId}/batal`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -53,12 +53,16 @@ export default function PembayaranPage() {
       const formData = new FormData();
       formData.append('bukti_transfer', file);
 
-      await axios.post(`https://reusemart.site/api/checkout/${orderId}/upload-bukti`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+      await axios.post(
+        `https://dashboard.reusemart.site/api/checkout/${orderId}/upload-bukti`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
         },
-      });
+      );
 
       alert('Upload berhasil! Pesanan Anda akan segera diproses.');
       navigate(`/konfirmasi-pesanan/${orderId}`);

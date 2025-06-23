@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse } from 'axios';
 
-const API_BASE_URL = 'https://reusemart.site/api';
+const API_BASE_URL = 'https://dashboard.reusemart.site/api';
 
 export const api = axios.create({
   // Export the api instance

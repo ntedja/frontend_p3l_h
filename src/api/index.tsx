@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://reusemart.site/api',
+  baseURL: 'https://dashboard.reusemart.site/api',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

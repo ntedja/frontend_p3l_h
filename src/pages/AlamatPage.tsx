@@ -98,7 +98,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('https://reusemart.site/api/pembeli/me', {
+        const response = await axios.get('https://dashboard.reusemart.site/api/pembeli/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -136,7 +136,7 @@ export default function AlamatPage() {
       }
 
       try {
-        const response = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
+        const response = await axios.get('https://dashboard.reusemart.site/api/pembeli/me/alamat', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAddresses(response.data.data);
@@ -174,7 +174,7 @@ export default function AlamatPage() {
   useEffect(() => {
     if (showAddForm && provinces.length === 0) {
       axios
-        .get('https://reusemart.site/api/provinsi')
+        .get('https://dashboard.reusemart.site/api/provinsi')
         .then((response) => setProvinces(response.data))
         .catch((error) => console.error('Failed to load provinces:', error));
     }
@@ -193,7 +193,7 @@ export default function AlamatPage() {
 
     if (provinceId) {
       axios
-        .get(`https://reusemart.site/api/kabupaten/${provinceId}`)
+        .get(`https://dashboard.reusemart.site/api/kabupaten/${provinceId}`)
         .then((response) => setRegencies(response.data))
         .catch((error) => console.error('Failed to load regencies:', error));
     } else {
@@ -212,7 +212,7 @@ export default function AlamatPage() {
 
     if (regencyId) {
       axios
-        .get(`https://reusemart.site/api/kecamatan/${regencyId}`)
+        .get(`https://dashboard.reusemart.site/api/kecamatan/${regencyId}`)
         .then((response) => setDistricts(response.data))
         .catch((error) => console.error('Failed to load districts:', error));
     } else {
@@ -226,7 +226,7 @@ export default function AlamatPage() {
 
     if (districtId) {
       axios
-        .get(`https://reusemart.site/api/desa/${districtId}`)
+        .get(`https://dashboard.reusemart.site/api/desa/${districtId}`)
         .then((response) => setVillages(response.data))
         .catch((error) => console.error('Failed to load villages:', error));
     } else {
@@ -252,12 +252,15 @@ export default function AlamatPage() {
 
     if (window.confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
       try {
-        const response = await axios.delete(`https://reusemart.site/api/pembeli/me/alamat/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+        const response = await axios.delete(
+          `https://dashboard.reusemart.site/api/pembeli/me/alamat/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
 
         if (response.data.success) {
           const updatedAddresses = addresses.filter((address) => address.ID_ALAMAT !== id);
@@ -289,13 +292,13 @@ export default function AlamatPage() {
 
     // Load location dropdowns
     axios
-      .get(`https://reusemart.site/api/kabupaten/${address.PROVINSI}`)
+      .get(`https://dashboard.reusemart.site/api/kabupaten/${address.PROVINSI}`)
       .then((res) => setRegencies(res.data));
     axios
-      .get(`https://reusemart.site/api/kecamatan/${address.KABUPATEN}`)
+      .get(`https://dashboard.reusemart.site/api/kecamatan/${address.KABUPATEN}`)
       .then((res) => setDistricts(res.data));
     axios
-      .get(`https://reusemart.site/api/desa/${address.KECAMATAN}`)
+      .get(`https://dashboard.reusemart.site/api/desa/${address.KECAMATAN}`)
       .then((res) => setVillages(res.data));
   };
 
@@ -310,7 +313,7 @@ export default function AlamatPage() {
 
     try {
       const response = await axios.put(
-        `https://reusemart.site/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
+        `https://dashboard.reusemart.site/api/pembeli/me/alamat/${editingAddress.ID_ALAMAT}`,
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -329,9 +332,12 @@ export default function AlamatPage() {
 
       if (response.data.success) {
         // Refresh the addresses list
-        const updatedResponse = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const updatedResponse = await axios.get(
+          'https://dashboard.reusemart.site/api/pembeli/me/alamat',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         setAddresses(updatedResponse.data.data);
         setFilteredAddresses(updatedResponse.data.data);
         setShowEditForm(false);
@@ -392,7 +398,7 @@ export default function AlamatPage() {
 
     try {
       await axios.post(
-        'https://reusemart.site/api/pembeli/me/alamat',
+        'https://dashboard.reusemart.site/api/pembeli/me/alamat',
         {
           JUDUL: addressFormData.JUDUL,
           NAMA_JALAN: addressFormData.NAMA_JALAN,
@@ -405,9 +411,12 @@ export default function AlamatPage() {
       );
 
       // Refresh addresses list
-      const updatedResponse = await axios.get('https://reusemart.site/api/pembeli/me/alamat', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const updatedResponse = await axios.get(
+        'https://dashboard.reusemart.site/api/pembeli/me/alamat',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       setAddresses(updatedResponse.data.data);
       setFilteredAddresses(updatedResponse.data.data);

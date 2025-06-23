@@ -31,7 +31,7 @@ export default function CartPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    const response = await axios.get('https://reusemart.site/api/cart-items', {
+    const response = await axios.get('https://dashboard.reusemart.site/api/cart-items', {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.data.success) throw new Error('Failed to fetch cart');
@@ -51,7 +51,7 @@ export default function CartPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    await axios.delete(`https://reusemart.site/api/cart-items/remove/${id}`, {
+    await axios.delete(`https://dashboard.reusemart.site/api/cart-items/remove/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   }

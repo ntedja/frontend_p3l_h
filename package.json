@@ -1,6 +1,7 @@
 {
   "name": "vite-project",
   "private": true,
+  "homepage": "https://reusemart.site/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

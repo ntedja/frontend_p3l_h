@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://reusemart.site/api';
+const API_BASE_URL = 'https://dashboard.reusemart.site/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

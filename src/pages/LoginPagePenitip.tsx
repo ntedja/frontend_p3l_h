@@ -22,7 +22,7 @@ export default function LoginPagePenitip() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('https://reusemart.site/api/login', {
+      const res = await axios.post('https://dashboard.reusemart.site/api/login', {
         EMAIL_PENITIP: email,
         PASSWORD_PENITIP: password,
       });

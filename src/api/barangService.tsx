@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://reusemart.site/api';
+const API_BASE_URL = 'https://dashboard.reusemart.site/api';
 
 export const getBarangListPublic = async () => {
   try {

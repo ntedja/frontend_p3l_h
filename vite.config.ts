@@ -18,7 +18,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://reusemart.site',
+        target: 'https://dashboard.reusemart.site',
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/api/, 'api'),
       },

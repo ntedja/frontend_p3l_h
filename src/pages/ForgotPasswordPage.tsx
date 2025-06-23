@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      const res = await axios.post('https://reusemart.site/api/forgot-password', {
+      const res = await axios.post('https://dashboard.reusemart.site/api/forgot-password', {
         email,
       });
 

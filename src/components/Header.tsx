@@ -1,30 +1,79 @@
 import { Search, ShoppingCart, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import logoImage from '../assets/logo.png';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { getBarangListPublic } from '../api/barangService';
+import { motion, AnimatePresence } from 'framer-motion';
+
+type Product = {
+  id: number;
+  name: string;
+  price: string;
+  category: string;
+  image: string;
+  images: string[];
+};
 
 export default function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  {
-    /* State to control the visibility of the logout modal */
-  }
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
   }, []);
 
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([]);
+        setIsSearchOpen(false);
+        return;
+      }
+
+      try {
+        const response = await getBarangListPublic();
+        const products = response.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          category: item.category,
+          image: item.image,
+          images: item.images ?? [],
+        }));
+
+        const filtered = products.filter((product: Product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+        setSearchResults(filtered);
+        setIsSearchOpen(true);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+        setSearchResults([]);
+        setIsSearchOpen(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchSearchResults, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
+
   const handleLogout = () => {
     localStorage.clear();
     setIsLoggedIn(false);
-    {
-      /* Close the logout modal */
-    }
     setShowLogoutModal(false);
     navigate('/login');
+  };
+
+  const handleSearchClick = (productId: number) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearchOpen(false);
+    navigate(`/produk/${productId}`);
   };
 
   return (
@@ -54,9 +103,6 @@ export default function Header() {
             <Link to="/mitra-reusemart" className="hover:text-[#2D4C41]">
               Mitra ReuseMart
             </Link>
-            {/* <Link to="/mulai-jualan" className="hover:text-[#2D4C41]">
-              Mulai Berjualan
-            </Link> */}
             <Link to="/requestdonasi" className="hover:text-[#2D4C41]">
               Request Donasi
             </Link>
@@ -84,8 +130,49 @@ export default function Header() {
             <input
               type="text"
               placeholder="Cari di ReuseMart"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => searchResults.length > 0 && setIsSearchOpen(true)}
               className="w-full border border-[#48635B] rounded-xl pl-10 pr-4 py-2 text-sm bg-transparent text-[#48635B] placeholder:text-[#48635B] focus:outline-none focus:ring-1 focus:ring-[#48635B]"
             />
+            {/* Search Results Dropdown */}
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 w-full bg-[#FFF7E2] border border-[#48635B] rounded-lg mt-2 shadow-lg z-50 max-h-96 overflow-y-auto"
+                >
+                  {searchResults.length > 0 ? (
+                    searchResults.map((product) => (
+                      <motion.div
+                        key={product.id}
+                        whileHover={{ backgroundColor: '#F1EADA' }}
+                        className="p-4 flex items-center gap-4 cursor-pointer border-b border-gray-200 last:border-b-0"
+                        onClick={() => handleSearchClick(product.id)}
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          onError={(e) => (e.currentTarget.src = '/images/default.jpg')}
+                          className="h-16 w-16 object-contain rounded"
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-[#2D4C41]">{product.name}</h3>
+                          <p className="text-sm font-medium text-[#48635B]">{product.price}</p>
+                          <span className="text-xs text-[#48635B]">{product.category}</span>
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-[#48635B] text-center">
+                      Tidak ada hasil ditemukan
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* User Actions */}

@@ -23,7 +23,7 @@ export default function LoginPageOrganisasi() {
     setErrorMsg('');
 
     try {
-      const res = await axios.post('https://reusemart.site/api/organisasi/login', {
+      const res = await axios.post('https://dashboard.reusemart.site/api/organisasi/login', {
         EMAIL_ORGANISASI: email,
         PASSWORD_ORGANISASI: password,
       });

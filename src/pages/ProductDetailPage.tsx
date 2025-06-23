@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
     if (!token) throw new Error('Not authenticated');
 
     await axios.post(
-      'https://reusemart.site/api/cart-items',
+      'https://dashboard.reusemart.site/api/cart-items',
       { ID_BARANG: productId, quantity: 1 },
       { headers: { Authorization: `Bearer ${token}` } },
     );
@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Not authenticated');
 
-    await axios.delete(`https://reusemart.site/api/cart-items/remove/${productId}`, {
+    await axios.delete(`https://dashboard.reusemart.site/api/cart-items/remove/${productId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`https://reusemart.site/api/produk/${id}`);
+        const res = await axios.get(`https://dashboard.reusemart.site/api/produk/${id}`);
         const raw: any = res.data;
 
         const mapped: Product = {
@@ -101,7 +101,7 @@ export default function ProductDetailPage() {
 
     const fetchDiskusi = async () => {
       try {
-        const res = await axios.get(`https://reusemart.site/api/produk/${id}/diskusi`);
+        const res = await axios.get(`https://dashboard.reusemart.site/api/produk/${id}/diskusi`);
         const dataArr = Array.isArray(res.data) ? res.data : res.data.data;
         const diskusiData: Diskusi[] = dataArr.map((d: any) => ({
           id: d.ID_DISKUSI,
@@ -150,7 +150,7 @@ export default function ProductDetailPage() {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await axios.post(
-        `https://reusemart.site/api/produk/${id}/diskusi`,
+        `https://dashboard.reusemart.site/api/produk/${id}/diskusi`,
         {
           PERTANYAAN: newDiskusi,
           ID_PEMBELI: user.ID_PEMBELI,
