@@ -46,9 +46,12 @@ export default function Header() {
           images: item.images ?? [],
         }));
 
-        const filtered = products.filter((product: Product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        );
+        const lowercasedQuery = searchQuery.toLowerCase();
+        const filtered = products.filter((product: Product) => {
+          const productName = product.name.toLowerCase();
+          const productCategory = product.category.toLowerCase();
+          return productName.includes(lowercasedQuery) || productCategory.includes(lowercasedQuery);
+        });
         setSearchResults(filtered);
         setIsSearchOpen(true);
       } catch (error) {
