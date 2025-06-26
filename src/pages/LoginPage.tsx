@@ -19,48 +19,40 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState(''); // For registration success message
+  const [successMsg, setSuccessMsg] = useState('');
   const [loginRequiredModal, setLoginRequiredModal] = useState<{ show: boolean; message: string }>({
     show: false,
     message: '',
   });
-  // const [userType, setUserType] = useState<'customer_staff' | 'organization'>(() => {
-  //   const state = location.state as { userType?: 'customer_staff' | 'organization' };
-  //   return state?.userType || 'customer_staff';
-  // });
+  const [forgotPasswordModal, setForgotPasswordModal] = useState(false);
 
   useEffect(() => {
     const state = location.state as {
-      // userType?: 'customer_staff' | 'organization'; // No longer used for selection
       registrationSuccess?: boolean;
       email?: string;
-      loginRequiredMessage?: string; // To display messages from other pages
+      loginRequiredMessage?: string;
     };
-    // if (state?.userType) { // No longer used for selection
-    //   setUserType(state.userType);
-    // }
+
     if (state?.registrationSuccess && state?.email) {
       setEmail(state.email);
       setSuccessMsg(`Registrasi berhasil! Silakan login.`);
-      // Clear the state from history to prevent re-triggering and message persisting on refresh
-      navigate(location.pathname, { replace: true, state: {} }); // Use location.pathname
+      navigate(location.pathname, { replace: true, state: {} });
     } else if (state?.loginRequiredMessage) {
       setLoginRequiredModal({ show: true, message: state.loginRequiredMessage });
-      navigate(location.pathname, { replace: true, state: {} }); // Clear the message
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    setSuccessMsg(''); // Clear success message on new login attempt
+    setSuccessMsg('');
     let loggedIn = false;
-    // let specificError = ''; // To store the last specific error if needed for debugging
 
     // Attempt 1: Login as Pembeli/Pegawai
     try {
       const res = await axios.post('https://dashboard.reusemart.site/api/login', {
-        email: email, // The backend for /api/login expects 'email'
+        email: email,
         password: password,
       });
 
@@ -68,7 +60,7 @@ export default function LoginPage() {
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('email', email);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      setAuthToken(res.data.token); // Explicitly update the shared api instance's auth header
+      setAuthToken(res.data.token);
 
       if (res.data.role === 'pegawai') {
         localStorage.setItem('jabatan', res.data.jabatan);
@@ -81,7 +73,6 @@ export default function LoginPage() {
       navigate('/');
       loggedIn = true;
     } catch (pembeliPegawaiError: any) {
-      // specificError = pembeliPegawaiError.response?.data?.message || 'Gagal login sebagai pelanggan/pegawai.';
       console.warn(
         'Pembeli/Pegawai login failed:',
         pembeliPegawaiError.response?.data?.message || pembeliPegawaiError.message,
@@ -97,7 +88,6 @@ export default function LoginPage() {
         });
         localStorage.setItem('role', 'organisasi');
         localStorage.setItem('email', email);
-        // loginOrganisasi handles setting 'token' and 'user' in localStorage
         const orgUser = JSON.parse(localStorage.getItem('user') || '{}');
         console.log('Login berhasil sebagai: organisasi');
         console.log('Nama Organisasi:', orgUser.NAMA_ORGANISASI);
@@ -107,7 +97,6 @@ export default function LoginPage() {
         navigate('/');
         loggedIn = true;
       } catch (organisasiError: any) {
-        // specificError = getErrorMessage(organisasiError as any) || 'Gagal login sebagai organisasi.';
         console.warn(
           'Organisasi login failed:',
           getErrorMessage(organisasiError as any) || organisasiError.message,
@@ -124,17 +113,15 @@ export default function LoginPage() {
         });
         localStorage.setItem('role', 'penitip');
         localStorage.setItem('email', email);
-        // loginPenitip handles setting 'token' and 'user' in localStorage
         const penitipUser = JSON.parse(localStorage.getItem('user') || '{}');
         console.log('Login berhasil sebagai: penitip');
         console.log('Nama Penitip:', penitipUser.NAMA_PENITIP);
         console.log('Email Penitip:', email);
         console.log('Token:', localStorage.getItem('token'));
 
-        navigate('/'); // Or penitip-specific dashboard
+        navigate('/');
         loggedIn = true;
       } catch (penitipError: any) {
-        // specificError = getErrorMessage(penitipError as any) || 'Gagal login sebagai penitip.';
         console.warn(
           'Penitip login failed:',
           getErrorMessage(penitipError as any) || penitipError.message,
@@ -145,6 +132,26 @@ export default function LoginPage() {
     if (!loggedIn) {
       setErrorMsg('Login gagal. Email atau password salah, atau akun tidak ditemukan.');
     }
+  };
+
+  const handleForgotPassword = (role: string) => {
+    switch (role) {
+      case 'pembeli':
+        window.location.href = 'https://dashboard.reusemart.site/pembeli/password-reset/request';
+        break;
+      case 'penitip':
+        window.location.href = 'https://dashboard.reusemart.site/penitip/password-reset/request';
+        break;
+      case 'organisasi':
+        window.location.href = 'https://dashboard.reusemart.site/organisasi/password-reset/request';
+        break;
+      case 'pegawai':
+        window.location.href = 'https://dashboard.reusemart.site/pegawai/password-reset/request';
+        break;
+      default:
+        break;
+    }
+    setForgotPasswordModal(false);
   };
 
   return (
@@ -180,35 +187,6 @@ export default function LoginPage() {
           {/* Form Login */}
           <div className="bg-white rounded-2xl border border-[#E1DBC0] shadow-md p-10 w-full max-w-md">
             <h2 className="text-2xl font-bold text-center mb-2 text-[#3E5B50]">Login Akun</h2>
-            {/* <p className="text-sm text-center mb-6 text-gray-600">
-              Masuk sebagai {userType === 'customer_staff' ? 'Pelanggan/Pegawai' : 'Organisasi'} // Removed
-            </p>
-            <p className="text-sm text-center mb-6 text-gray-600">Silakan masukkan email dan password Anda.</p>
-
-            {/* <div className="flex justify-center space-x-4 mb-5"> // Radio buttons removed
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="userType"
-                  value="customer_staff"
-                  checked={userType === 'customer_staff'}
-                  onChange={() => setUserType('customer_staff')}
-                  className="form-radio text-[#3E5B50] focus:ring-[#3E5B50]"
-                />
-                <span className="text-sm">Pelanggan/Pegawai</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="userType"
-                  value="organization"
-                  checked={userType === 'organization'}
-                  onChange={() => setUserType('organization')}
-                  className="form-radio text-[#3E5B50] focus:ring-[#3E5B50]"
-                />
-                <span className="text-sm">Organisasi</span>
-              </label>
-            </div> */}
 
             <form className="space-y-5" onSubmit={handleLogin}>
               <input
@@ -240,9 +218,13 @@ export default function LoginPage() {
 
                 {/* Forgot Password Link */}
                 <div className="flex justify-end mt-2">
-                  <a href="/forgot-password" className="text-sm text-[#3E5B50] hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => setForgotPasswordModal(true)}
+                    className="text-sm text-[#3E5B50] hover:underline"
+                  >
                     Lupa password?
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -285,6 +267,54 @@ export default function LoginPage() {
               className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
             >
               Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {forgotPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 className="text-xl font-semibold text-[#3E5B50] mb-4 text-center">
+              Reset Password
+            </h3>
+            <p className="text-gray-700 mb-6 text-center">
+              Pilih tipe akun Anda untuk reset password:
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleForgotPassword('pembeli')}
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+              >
+                Pembeli
+              </button>
+              <button
+                onClick={() => handleForgotPassword('penitip')}
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+              >
+                Penitip
+              </button>
+              <button
+                onClick={() => handleForgotPassword('organisasi')}
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+              >
+                Organisasi
+              </button>
+              <button
+                onClick={() => handleForgotPassword('pegawai')}
+                className="w-full bg-[#3E5B50] hover:bg-[#2D4C41] text-white py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+              >
+                Pegawai
+              </button>
+            </div>
+
+            <button
+              onClick={() => setForgotPasswordModal(false)}
+              className="w-full mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2.5 rounded-lg shadow-md text-sm font-semibold transition-colors duration-150"
+            >
+              Batal
             </button>
           </div>
         </div>

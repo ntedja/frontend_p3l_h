@@ -24,6 +24,8 @@ import KonfirmasiPesananPage from './pages/KonfirmasiPesananPage';
 import PembayaranPage from './pages/PembayaranPage';
 import CartPage from './pages/CartPage';
 import RequestPage from './pages/RequestPage';
+import NotFoundPage from './pages/NotFoundPage';
+import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 export default function App() {
   return (
@@ -36,24 +38,25 @@ export default function App() {
         <Route path="/produk/:id" element={<ProductDetailPage />} />
         <Route path="/tentang-reusemart" element={<TentangReuseMartPage />} />
         <Route path="/mitra-reusemart" element={<MitraReuseMartPage />} />
-        <Route path="/mulai-jualan" element={<MulaiJualanPage />} />
+        {/* <Route path="/mulai-jualan" element={<MulaiJualanPage />} /> */}
         <Route path="/reusemart-care" element={<ReuseMartCarePage />} />
-        <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />
-        <Route path="/loginpenitip" element={<LoginPagePenitip />} />
+        {/* <Route path="/loginorganisasi" element={<LoginPageOrganisasi />} />/ */}
+        {/* <Route path="/loginpenitip" element={<LoginPagePenitip />} /> */}
         <Route path="/registerorganisasi" element={<RegisterPageOrganisasi />} />
-        <Route path="/katalogrequest" element={<KatalogRequest />} />
-        <Route path="/historyrequest" element={<HistoryRequest />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profilepagelive" element={<ProfilePageLive />} />
-        <Route path="/alamat" element={<AlamatPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/riwayat-pesanan" element={<RiwayatPesananPage />} />
-        <Route path="/checkout/:id" element={<CheckoutPage />} />
-        <Route path="/konfirmasi-pesanan/:orderId" element={<KonfirmasiPesananPage />} />
-        <Route path="/pembayaran/:orderId" element={<PembayaranPage />} />
-        <Route path="/requestdonasi" element={<RequestPage />} />
-        <Route path="/cart" element={<CartPage />} />
+        {/* <Route path="/katalogrequest" element={<KatalogRequest />} /> */}
+        <Route path="/historyrequest" element={<ProtectedRoute><HistoryRequest /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/profilepagelive" element={<ProtectedRoute><ProfilePageLive /></ProtectedRoute>} />
+        <Route path="/alamat" element={<ProtectedRoute><AlamatPage /></ProtectedRoute>} />
+        {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
+        {/* <Route path="/reset-password" element={<ResetPasswordPage />} /> */}
+        <Route path="/riwayat-pesanan" element={<ProtectedRoute><RiwayatPesananPage /></ProtectedRoute>} />
+        <Route path="/checkout/:id" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+        <Route path="/konfirmasi-pesanan/:orderId" element={<ProtectedRoute><KonfirmasiPesananPage /></ProtectedRoute>} />
+        <Route path="/pembayaran/:orderId" element={<ProtectedRoute><PembayaranPage /></ProtectedRoute>} />
+        <Route path="/requestdonasi" element={<ProtectedRoute><RequestPage /></ProtectedRoute>} />
+        <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

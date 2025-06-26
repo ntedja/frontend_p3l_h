@@ -142,6 +142,21 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleBeliSekarang = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', {
+        replace: true,
+        state: {
+          loginRequiredMessage: 'Anda harus login terlebih dahulu untuk membeli barang.',
+        },
+      });
+    } else if (product) {
+      // Proceed to checkout if logged in and product exists
+      navigate(`/checkout/${product.id}`);
+    }
+  };
+
   const handleSubmitDiskusi = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDiskusi.trim()) return;
@@ -309,7 +324,7 @@ export default function ProductDetailPage() {
 
             <button
               className="bg-[#5B8482] text-white w-full py-2 rounded hover:bg-[#48635B] mb-2"
-              onClick={() => navigate(`/checkout/${product.id}`)}
+              onClick={handleBeliSekarang}
             >
               Beli Sekarang
             </button>

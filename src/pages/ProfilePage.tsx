@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import defaultAvatar from '../assets/defaultAvatar.png';
 import { api, generateMagicLink, generatePegawaiMagicLink } from '../api/apiAuth';
 import type { AxiosError } from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getDashboardPathForRole, FILAMENT_DASHBOARD_BASE_URL } from '../config/dashboardUrls';
 
 interface PembeliProfileData {
@@ -51,6 +51,8 @@ export default function ProfilePage() {
       document.title = "ReuseMart";
     };
   }, []);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState<ProfileData>({});
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -67,14 +69,24 @@ export default function ProfilePage() {
       setUserRole(role);
 
       if (!token) {
-        setError('Sesi tidak valid. Silakan login kembali.');
-        setIsLoading(false);
+        navigate('/login', {
+          replace: true,
+          state: {
+            loginRequiredMessage: 'Anda harus login terlebih dahulu untuk mengakses halaman profil.',
+            from: location.pathname,
+          },
+        });
         return;
       }
 
       if (!role) {
-        setError('Peran pengguna tidak ditemukan. Silakan login kembali.');
-        setIsLoading(false);
+        navigate('/login', {
+          replace: true,
+          state: {
+            loginRequiredMessage: 'Peran pengguna tidak ditemukan. Silakan login kembali.',
+            from: location.pathname,
+          },
+        });
         return;
       }
 
@@ -163,7 +175,7 @@ export default function ProfilePage() {
     };
 
     fetchProfileData();
-  }, []);
+  }, [navigate, location.pathname]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
