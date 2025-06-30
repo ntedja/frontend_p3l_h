@@ -1,11 +1,11 @@
-import { motion } from "framer-motion";
-import { useEffect } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function TentangReuseMartPage() {
   useEffect(() => {
-    document.title = "Tentang ReuseMart";
+    document.title = 'ReuseMart - Tentang';
   }, []);
 
   return (
@@ -29,8 +29,8 @@ export default function TentangReuseMartPage() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-base sm:text-lg max-w-3xl mx-auto leading-relaxed text-[#405C53]"
         >
-          Platform jual beli barang bekas berkualitas dari Yogyakarta. Berdiri atas kepedulian lingkungan,
-          ReuseMart hadir sebagai solusi ramah lingkungan dan praktis.
+          Platform jual beli barang bekas berkualitas dari Yogyakarta. Berdiri atas kepedulian
+          lingkungan, ReuseMart hadir sebagai solusi ramah lingkungan dan praktis.
         </motion.p>
       </section>
 
@@ -60,9 +60,9 @@ export default function TentangReuseMartPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-[#2F3F3A]">Apa Itu ReuseMart?</h2>
             <p>
               ReuseMart adalah marketplace barang bekas yang menggabungkan proses konsinyasi,
-              manajemen gudang, pengiriman, dan donasi barang dalam satu platform digital.
-              Semua proses dilakukan oleh tim kami, sehingga penitip cukup menitipkan barang
-              dan kami yang akan bekerja.
+              manajemen gudang, pengiriman, dan donasi barang dalam satu platform digital. Semua
+              proses dilakukan oleh tim kami, sehingga penitip cukup menitipkan barang dan kami yang
+              akan bekerja.
             </p>
             <ul className="list-disc list-inside space-y-2">
               <li>Barang tidak laku bisa didonasikan secara transparan</li>
@@ -89,29 +89,29 @@ export default function TentangReuseMartPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {[
               {
-                title: "Layanan Konsinyasi All-in-One",
-                desc: "Dari QC, foto produk, gudang, hingga pengiriman ditangani oleh tim profesional kami."
+                title: 'Layanan Konsinyasi All-in-One',
+                desc: 'Dari QC, foto produk, gudang, hingga pengiriman ditangani oleh tim profesional kami.',
               },
               {
-                title: "Komitmen Ramah Lingkungan",
-                desc: "Mengurangi limbah dan mendukung daur ulang melalui donasi barang yang tidak laku."
+                title: 'Komitmen Ramah Lingkungan',
+                desc: 'Mengurangi limbah dan mendukung daur ulang melalui donasi barang yang tidak laku.',
               },
               {
-                title: "Platform Digital Transparan",
-                desc: "Transaksi dan status barang bisa dilihat secara real-time oleh penitip dan pembeli."
+                title: 'Platform Digital Transparan',
+                desc: 'Transaksi dan status barang bisa dilihat secara real-time oleh penitip dan pembeli.',
               },
               {
-                title: "Mitra Sosial untuk Donasi",
-                desc: "Barang yang tak terjual dapat disumbangkan ke organisasi sosial yang terverifikasi."
+                title: 'Mitra Sosial untuk Donasi',
+                desc: 'Barang yang tak terjual dapat disumbangkan ke organisasi sosial yang terverifikasi.',
               },
               {
-                title: "Dukungan Layanan Pelanggan",
-                desc: "Tim kami siap membantu penitip dan pembeli melalui sistem terintegrasi."
+                title: 'Dukungan Layanan Pelanggan',
+                desc: 'Tim kami siap membantu penitip dan pembeli melalui sistem terintegrasi.',
               },
               {
-                title: "Sistem Notifikasi Cerdas",
-                desc: "Pengingat otomatis saat masa penitipan hampir habis atau saat barang harus diambil."
-              }
+                title: 'Sistem Notifikasi Cerdas',
+                desc: 'Pengingat otomatis saat masa penitipan hampir habis atau saat barang harus diambil.',
+              },
             ].map((item, idx) => (
               <motion.div
                 key={idx}
@@ -120,7 +120,9 @@ export default function TentangReuseMartPage() {
                 transition={{ duration: 0.4, delay: idx * 0.15 }}
                 className="bg-[#F3EFDA] p-6 rounded-xl shadow-md text-center"
               >
-                <h3 className="font-semibold text-base sm:text-lg text-[#3E5B50] mb-2">{item.title}</h3>
+                <h3 className="font-semibold text-base sm:text-lg text-[#3E5B50] mb-2">
+                  {item.title}
+                </h3>
                 <p className="text-sm text-[#2F3F3A]">{item.desc}</p>
               </motion.div>
             ))}

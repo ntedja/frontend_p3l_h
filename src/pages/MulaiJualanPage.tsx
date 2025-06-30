@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const MulaiJualanPage = () => {
   useEffect(() => {
-    document.title = "Mulai Jualan - ReuseMart";
+    document.title = 'ReuseMart - Mulai Jualan';
   }, []);
 
   return (
@@ -27,8 +27,8 @@ const MulaiJualanPage = () => {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="text-base sm:text-lg max-w-2xl mx-auto text-[#405C53]"
         >
-          Isi formulir di bawah ini untuk menitipkan barang bekas berkualitas Anda ke ReuseMart.
-          Tim kami akan menghubungi Anda untuk proses selanjutnya.
+          Isi formulir di bawah ini untuk menitipkan barang bekas berkualitas Anda ke ReuseMart. Tim
+          kami akan menghubungi Anda untuk proses selanjutnya.
         </motion.p>
       </section>
 
@@ -43,7 +43,9 @@ const MulaiJualanPage = () => {
             />
           </div>
           <div>
-            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">Nomor WhatsApp</label>
+            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">
+              Nomor WhatsApp
+            </label>
             <input
               type="tel"
               className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
@@ -51,14 +53,18 @@ const MulaiJualanPage = () => {
             />
           </div>
           <div>
-            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">Email (opsional)</label>
+            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">
+              Email (opsional)
+            </label>
             <input
               type="email"
               className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
             />
           </div>
           <div>
-            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">Alamat Lengkap</label>
+            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">
+              Alamat Lengkap
+            </label>
             <textarea
               className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
               rows={3}
@@ -66,7 +72,9 @@ const MulaiJualanPage = () => {
             ></textarea>
           </div>
           <div>
-            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">Deskripsi Barang Bekas</label>
+            <label className="block mb-2 text-sm font-semibold text-[#3E5B50]">
+              Deskripsi Barang Bekas
+            </label>
             <textarea
               className="w-full border border-[#CFCAB5] bg-white text-[#2F3F3A] rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3E5B50] focus:outline-none"
               rows={4}

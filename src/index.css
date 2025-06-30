@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Hindari scroll horizontal */
+}
+
 /* Reset dan base styling */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -47,3 +55,9 @@ a:hover {
     color: #3C686A;
   }
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%);
+}
+
+

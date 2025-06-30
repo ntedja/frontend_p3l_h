@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const MitraReuseMartPage = () => {
   useEffect(() => {
-    document.title = "Mitra ReuseMart";
+    document.title = 'Mitra ReuseMart';
   }, []);
 
   return (
@@ -28,7 +28,9 @@ const MitraReuseMartPage = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="text-base sm:text-lg max-w-3xl mx-auto text-[#405C53]"
         >
-          Ada dua cara untuk berkontribusi dalam ekonomi sirkular bersama ReuseMart: sebagai <strong>Penitip Barang</strong> atau sebagai <strong>Mitra Jemput Bola</strong>. Kedua peran hanya bisa didaftarkan secara langsung di lokasi ReuseMart.
+          Ada dua cara untuk berkontribusi dalam ekonomi sirkular bersama ReuseMart: sebagai{' '}
+          <strong>Penitip Barang</strong> atau sebagai <strong>Mitra Jemput Bola</strong>. Kedua
+          peran hanya bisa didaftarkan secara langsung di lokasi ReuseMart.
         </motion.p>
       </section>
 
@@ -44,7 +46,8 @@ const MitraReuseMartPage = () => {
           >
             <h3 className="text-xl font-bold text-[#3E5B50] mb-4">Mitra Penitip Barang</h3>
             <p className="text-sm text-[#2F3F3A] mb-4">
-              Penitip adalah individu yang ingin menjual barang bekasnya melalui sistem ReuseMart. Barang akan dititipkan di gudang kami dan dipasarkan oleh tim kami.
+              Penitip adalah individu yang ingin menjual barang bekasnya melalui sistem ReuseMart.
+              Barang akan dititipkan di gudang kami dan dipasarkan oleh tim kami.
             </p>
             <ul className="list-disc list-inside text-sm space-y-2">
               <li>Komisi 20% untuk masa penitipan pertama (30 hari)</li>
@@ -64,7 +67,8 @@ const MitraReuseMartPage = () => {
           >
             <h3 className="text-xl font-bold text-[#3E5B50] mb-4">Mitra Jemput Bola</h3>
             <p className="text-sm text-[#2F3F3A] mb-4">
-              Mitra yang secara aktif mencari dan mengumpulkan barang layak pakai dari lingkungan sekitar. Barang yang dikumpulkan akan diproses di ReuseMart.
+              Mitra yang secara aktif mencari dan mengumpulkan barang layak pakai dari lingkungan
+              sekitar. Barang yang dikumpulkan akan diproses di ReuseMart.
             </p>
             <ul className="list-disc list-inside text-sm space-y-2">
               <li>Komisi 5% dari barang yang berhasil dijual</li>
@@ -103,7 +107,8 @@ const MitraReuseMartPage = () => {
           >
             <h4 className="text-lg font-semibold text-[#3E5B50] mb-2">Alur Pendaftaran Mitra</h4>
             <p className="text-sm text-[#2F3F3A] mb-2">
-              Semua pendaftaran dilakukan langsung di kantor ReuseMart. Mitra wajib membawa identitas diri (KTP) dan barang yang akan dititipkan (jika sebagai Penitip).
+              Semua pendaftaran dilakukan langsung di kantor ReuseMart. Mitra wajib membawa
+              identitas diri (KTP) dan barang yang akan dititipkan (jika sebagai Penitip).
             </p>
             <ol className="list-decimal list-inside text-sm text-[#2F3F3A] space-y-2">
               <li>Datang ke kantor ReuseMart dan registrasi ke Customer Service</li>
@@ -127,7 +132,8 @@ const MitraReuseMartPage = () => {
             Ingin menjadi bagian dari ReuseMart?
           </p>
           <p className="text-sm text-[#2F3F3A] mb-6">
-            Silakan kunjungi kantor ReuseMart di Yogyakarta untuk mendaftar sebagai Penitip atau Hunter.
+            Silakan kunjungi kantor ReuseMart di Yogyakarta untuk mendaftar sebagai Penitip atau
+            Hunter.
           </p>
           <div className="w-full h-[350px] rounded-xl overflow-hidden shadow-lg">
             <iframe
